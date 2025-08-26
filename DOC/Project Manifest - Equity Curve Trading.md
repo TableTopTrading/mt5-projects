@@ -1,4 +1,77 @@
-Of course. This is an excellent approach. Here is a detailed, phase-gated project plan designed for a collaborative workflow between an LLM (developer) and a human (tester/manager).
+
+**Last Updated:** 2025-08-16
+**Version:** 0.1.1 (Slope Strength Indicator complete. Project Initiation of Dashboard)
+**Project Overview:** This document tracks all source files, documentation, and key information for the MT5 Equity Curve Project.
+
+---
+
+## 1. Project Overview
+
+A brief, high-level description of the project, its goal, and its architecture (MVC pattern).
+
+- This first project involves creating a MetaTrader 5 indicator that plots the strength of FX pairs (and other markets) based on a custom (SMA & ATR) calculation. This is now complete.
+- This project involves creating a MetaTrader 5 indicator that displays a real-time dashboard categorizing multiple forex symbols into strength buckets based on a custom (SMA & ATR) calculation. This is starting now.
+- The next project is to develop an EA to trade a 'dummy' account which produces an Equity Curve.
+- The next project is to develop an EA that consumes the Equity Curve EA's output, and trades a live account.
+
+## 2. File Manifest
+
+This section is the core of the document. It lists every file in the project with its purpose and status.
+
+### 2.1 Core Source Files
+
+| File Name | Type | Purpose | Status | Version | Dependencies |
+| :-------- | :--- | :------ | :----- | :------ | :----------- |
+|           |      |         |        |         |              |
+|           |      |         |        |         |              |
+|           |      |         |        |         |              |
+|           |      |         |        |         |              |
+|           |      |         |        |         |              |
+
+### 2.2 Test Files
+
+| File Name | Type | Purpose | Status |
+| :-------- | :--- | :------ | :----- |
+|           |      |         |        |
+|           |      |         |        |
+
+### 2.3 Documentation
+
+| File Name                                      | Purpose                                            |
+| :--------------------------------------------- | :------------------------------------------------- |
+| `PROJECT_MANIFEST.md`                          | (This file) The central registry for the project.  |
+| `Project Context - SlopeStrength Dashboard.md` | Provides high-level context for developers (LLMs). |
+|                                                |                                                    |
+|                                                |                                                    |
+
+---
+
+## 3. Key Data Structures
+
+A quick reference for the core data objects used in the code.
+e.g.
+*   **`Name`**
+    *   `Attributes`: 
+    *   `Methods`: 
+
+
+---
+
+## 4. Version History
+
+A changelog to track progress and changes.
+
+| Version   | Date       | Author | Description                             |
+| :-------- | :--------- | :----- | :-------------------------------------- |
+| **0.1.0** | 2025-08-25 | CM     | SlopeStrength Indicator completed       |
+| 0.1.1     | 2025-08-26 | CM     | Project Initiation of Dashboard Project |
+|           |            |        |                                         |
+|           |            |        |                                         |
+
+---
+
+## 5. Backlog
+
 
 ### **Project Plan: Multi-Market Strength Dashboard (Integrated Calculation)**
 
@@ -125,5 +198,6 @@ Of course. This is an excellent approach. Here is a detailed, phase-gated projec
 *   **Cycle A (User Configuration):** Implement the input parameters for thresholds and symbol selection (Sprint 2 stories).
 *   **Cycle B (Polish & UX):** Implement color customization, trend arrows, and advanced error handling (Sprint 3 stories).
 *   Each cycle would follow the same pattern: **Task Definition (Human) -> Implementation (LLM) -> Unit/Integration Test (Human) -> Feedback.**
+---
 
-This plan provides a clear, sequential, and test-driven roadmap for building a complex MT5 indicator through effective human-LLM collaboration.
+### Known Issues
