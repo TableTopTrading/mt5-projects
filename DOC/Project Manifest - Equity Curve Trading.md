@@ -22,11 +22,9 @@ This section is the core of the document. It lists every file in the project wit
 
 | File Name | Type | Purpose | Status | Version | Dependencies |
 | :-------- | :--- | :------ | :----- | :------ | :----------- |
-|           |      |         |        |         |              |
-|           |      |         |        |         |              |
-|           |      |         |        |         |              |
-|           |      |         |        |         |              |
-|           |      |         |        |         |              |
+| SuperSlope.mq5 | Indicator | Main indicator file for SuperSlope | Complete | 1.0 | CSuperSlope.mqh |
+| CSuperSlope.mqh | Include | Implementation class for SuperSlope calculations | Complete | 1.0 | None |
+| MultiMarketStrengthDashboard.mq5 | Indicator | Dashboard indicator for market strength | Planned | 0.1 | TBD |
 
 ### 2.2 Test Files
 
@@ -41,18 +39,43 @@ This section is the core of the document. It lists every file in the project wit
 | :--------------------------------------------- | :------------------------------------------------- |
 | `PROJECT_MANIFEST.md`                          | (This file) The central registry for the project.  |
 | `Project Context - SlopeStrength Dashboard.md` | Provides high-level context for developers (LLMs). |
-|                                                |                                                    |
-|                                                |                                                    |
+| `SuperSlope_User_Guide.md`                    | Complete user documentation for SuperSlope indicator |
+| `Project Manifest - Equity Curve Trading.md`  | Project tracking and documentation for the full project suite |
 
 ---
 
 ## 3. Key Data Structures
 
-A quick reference for the core data objects used in the code.
-e.g.
-*   **`Name`**
-    *   `Attributes`: 
-    *   `Methods`: 
+### Completed Components
+
+#### CSuperSlope
+*   **Purpose**: Implements the core SuperSlope calculation logic
+*   **Attributes**: 
+    - `m_ma_period`: Period for the Linear Weighted Moving Average
+    - `m_atr_period`: Period for the Average True Range
+*   **Methods**: 
+    - `Calculate()`: Performs the normalized slope calculation
+    - `Initialize()`: Sets up indicator buffers and parameters
+    
+### Planned Components
+
+#### CDataManager (Planned)
+*   **Purpose**: Manages data calculations for the strength dashboard
+*   **Methods**: 
+    - `CalculateStrengthValue(string symbol)`: Calculate strength value for a symbol
+
+#### CRenderer (Planned)
+*   **Purpose**: Handles dashboard visualization
+*   **Methods**: 
+    - `DrawDashboardHeaders()`
+    - `Draw()`
+    - `DeleteAllObjects()`
+    - `DrawSymbolRow()`
+
+#### CDashboardController (Planned)
+*   **Purpose**: Orchestrates the Model and View components
+*   **Methods**: 
+    - `Update()`: Main control loop for dashboard updates
 
 
 ---
@@ -85,7 +108,7 @@ A changelog to track progress and changes.
 
 ### **Phase 0: Project Setup & Foundation**
 **Objective:** Establish the shared context and development environment.
-- [ ] **Task 0.1 (Human):** Create the `project_context.md` file (as described previously) and make it accessible to the LLM.
+- [x] **Task 0.1 (Human):** Create the `project_context.md` file (as described previously) and make it accessible to the LLM.
 - [ ] **Task 0.2 (Human):** Create a new blank MetaTrader 5 Indicator file (`MultiMarketStrengthDashboard.mq5`) and a dedicated include folder for the project.
 - [ ] **Task 0.3 (LLM):** Generate the basic structure for the main indicator file, including the `#property` directives, `OnInit()`, `OnDeinit()`, `OnCalculate()` skeleton, and input parameters for thresholds, MA/ATR periods, and symbol list. *(This provides a scaffold to build upon)*.
 	- [ ] **Deliverable:** `MultiMarketStrengthDashboard.mq5` (v0.1)
