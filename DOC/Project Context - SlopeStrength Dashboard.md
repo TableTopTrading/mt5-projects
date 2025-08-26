@@ -22,6 +22,4 @@ Agile/Iterative, with a focus on discrete, testable components.
 
 ### Current Task
 
-**Iteration 3.3: Integration Test Creation**
-*   **Task 3.3.1 (LLM):** Update the main `SuperSlopeDashboard.mq5` file to `#include` all three class files. In `OnInit()`, create instances of the three classes and initialize them. In `OnCalculate()`, call the controller's `Update()` method.
-*   **Deliverable:** `SuperSlopeDashboard.mq5` (v1.0 - integrated)
+Integration testing and bug fixing
