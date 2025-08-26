@@ -7,6 +7,7 @@
 #property link      "web3spotlight@gmail.com"
 #property version   "1.00"
 #property indicator_chart_window
+#property indicator_plots 0  // No indicator plots needed for dashboard
 #property strict
 
 // Include files
@@ -46,7 +47,6 @@ int OnInit()
    }
    
    // Initialize controller with input parameters
-   // Use default dashboard position (20, 50) - can be made configurable later
    if(!dashboard_controller.Initialize(SlopeMAPeriod, SlopeATRPeriod, 20, 50))
    {
       Print("ERROR: Failed to initialize CDashboardController");
@@ -57,26 +57,16 @@ int OnInit()
    
    // Parse symbol list and create array for controller
    string symbol_array[];
-   string current_symbol = "";
-   int symbol_count = 0;
-   
-   // Count symbols first to size array properly
-   for(int i = 0; i <= StringLen(SymbolList); i++)
+   int symbol_count = StringSplit(SymbolList, ',', symbol_array);
+
+   // Trim spaces from each symbol - CORRECTED
+   for(int i = 0; i < symbol_count; i++)
    {
-      if(i == StringLen(SymbolList) || SymbolList[i] == ',')
-      {
-         if(StringLen(current_symbol) > 0)
-         {
-            symbol_count++;
-         }
-         current_symbol = "";
-      }
-      else if(SymbolList[i] != ' ') // Skip spaces
-      {
-         current_symbol += SymbolList[i];
-      }
+      // Correct trimming: functions modify the string in-place
+      StringTrimRight(symbol_array[i]);
+      StringTrimLeft(symbol_array[i]);
    }
-   
+
    if(symbol_count == 0)
    {
       Print("ERROR: No symbols provided in SymbolList");
@@ -84,29 +74,7 @@ int OnInit()
       dashboard_controller = NULL;
       return INIT_PARAMETERS_INCORRECT;
    }
-   
-   // Resize array and parse symbols again
-   ArrayResize(symbol_array, symbol_count);
-   current_symbol = "";
-   int array_index = 0;
-   
-   for(int i = 0; i <= StringLen(SymbolList); i++)
-   {
-      if(i == StringLen(SymbolList) || SymbolList[i] == ',')
-      {
-         if(StringLen(current_symbol) > 0)
-         {
-            symbol_array[array_index] = current_symbol;
-            array_index++;
-         }
-         current_symbol = "";
-      }
-      else if(SymbolList[i] != ' ') // Skip spaces
-      {
-         current_symbol += SymbolList[i];
-      }
-   }
-   
+
    // Set symbols in controller
    if(!dashboard_controller.SetSymbols(symbol_array))
    {
@@ -117,7 +85,6 @@ int OnInit()
    }
    
    // Set thresholds using input parameters
-   // Map: StrongThreshold -> strong_bull, WeakThreshold -> weak_bull, -StrongThreshold -> weak_bear
    if(!dashboard_controller.SetThresholds(StrongThreshold, WeakThreshold, -StrongThreshold))
    {
       Print("ERROR: Failed to set thresholds in CDashboardController");
@@ -141,7 +108,6 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   // Clean up controller and all dashboard objects
    if(dashboard_controller != NULL)
    {
       dashboard_controller.Cleanup();
@@ -167,7 +133,6 @@ int OnCalculate(const int32_t rates_total,
    if(!initialized || dashboard_controller == NULL)
       return rates_total;
 
-   // Let the MVC controller handle all calculations and rendering
    dashboard_controller.Update();
 
    return rates_total;
