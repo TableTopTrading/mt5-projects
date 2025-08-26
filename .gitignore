@@ -1,41 +1,25 @@
-# Prerequisites
-*.d
+# Exclude MT5 built-in directories and files
+MQL5/Experts/Examples/
+MQL5/Experts/MetaTrader/
+MQL5/Indicators/Examples/
+MQL5/Indicators/MetaTrader/
+MQL5/Includes/MetaTrader/
+MQL5/Scripts/Examples/
+MQL5/Scripts/MetaTrader/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Exclude compiled files
+*.ex5
+*.ex4
 
-# Precompiled Headers
-*.gch
-*.pch
+# Exclude temporary files
+*.tmp
+*.cache
 
-# Linker files
-*.ilk
+# Exclude history files
+*.history/
 
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+# Exclude IDE files
+.vscode/
+.metatader/
+*.sln
+*.suo
