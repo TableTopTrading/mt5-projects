@@ -16,8 +16,6 @@ input int    StartX = 20;           // Dashboard X position
 input int    StartY = 50;           // Dashboard Y position
 input string FontName = "Arial";    // Font name
 input int    FontSize = 10;         // Font size
-input bool   ClearExisting = true;  // Clear existing dashboard objects
-input int    DisplayTimeMs = 5000;  // Time to display dashboard (milliseconds)
 
 //--- Global renderer instance
 CRenderer g_renderer;
@@ -28,14 +26,6 @@ CRenderer g_renderer;
 void OnStart()
 {
    Print("=== Test_Renderer.mq5 Starting ===");
-   
-   // Clear existing objects if requested
-   if(ClearExisting)
-   {
-      g_renderer.DeleteAllObjects();
-      Print("✓ Cleared existing dashboard objects");
-      Sleep(200);
-   }
    
    // Initialize renderer with test parameters
    if(!g_renderer.Initialize(StartX, StartY))
@@ -53,28 +43,14 @@ void OnStart()
    // Draw dashboard headers first
    g_renderer.DrawDashboardHeaders();
    Print("✓ Dashboard headers drawn");
-   ChartRedraw(0);
-   Sleep(500); // Half second to see headers
    
    // Create test data arrays for each strength category
    CreateAndDisplayTestData();
-   
-   // Keep dashboard visible for specified time
-   Print("=== DASHBOARD DISPLAY TIME ===");
-   Print("Dashboard will be visible for ", DisplayTimeMs, " milliseconds");
-   Print("You can now visually inspect the dashboard...");
-   
-   ChartRedraw(0);
-   Sleep(DisplayTimeMs);
    
    Print("=== Test_Renderer.mq5 Completed Successfully ===");
    Print("Visual Test: Check chart for dashboard with 5 columns and test symbols");
    Print("Expected: Headers (Strong Bull, Weak Bull, Neutral, Weak Bear, Strong Bear)");
    Print("Expected: Test symbols in appropriate columns with values");
-   Print("Dashboard display time has ended");
-   
-   // NOTE: Objects will be automatically cleaned up when script ends
-   // This is normal behavior for MT5 scripts
 }
 
 //+------------------------------------------------------------------+
@@ -140,12 +116,7 @@ void CreateAndDisplayTestData()
    
    Print("✓ Dashboard rendered with test data");
    
-   // Force chart redraw to ensure objects are visible
-   ChartRedraw(0);
-   Sleep(100); // Brief pause to ensure objects are drawn
-   
-   // Additional validation with improved timing
-   Sleep(200); // Give objects time to be created
+   // Additional validation
    if(g_renderer.ObjectsExist())
    {
       int object_count = g_renderer.GetObjectCount();
@@ -153,21 +124,6 @@ void CreateAndDisplayTestData()
    }
    else
    {
-      Print("⚠ WARNING: Dashboard objects not detected via ObjectsExist()");
-      // Try alternative validation
-      if(ObjectFind(0, "SSD_Header_0_BG") >= 0)
-      {
-         Print("✓ Objects detected via direct search - ObjectsExist() method may need adjustment");
-      }
-      else
-      {
-         Print("✗ ERROR: No dashboard objects found at all");
-      }
+      Print("⚠ WARNING: Dashboard objects not detected");
    }
-   
-   // Display instructions for manual cleanup
-   Print("=== DASHBOARD PERSISTENCE ===");
-   Print("The dashboard will remain visible during the display time.");
-   Print("Objects created: Headers, symbol rows, and backgrounds");
-   Print("All objects use 'SSD_' prefix for identification");
 }

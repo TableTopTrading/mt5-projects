@@ -11,7 +11,7 @@
 
 // Include files
 #include <Arrays\ArrayString.mqh>
-#include <MyProjects\SuperSlope Includes\CSuperSlope.mqh>
+#include <MyProjects/SuperSlopeDashboard/CDashboardController_v2.mqh>
 
 //--- Input Parameters
 input group "Calculation Parameters"
@@ -27,58 +27,113 @@ input group "Symbol List"
 input string SymbolList       = "EURUSD,GBPUSD,USDJPY,USDCHF,AUDUSD,USDCAD,NZDUSD"; // Symbols (comma-separated)
 
 //--- Global Variables
-CArrayString* symbols;        // Array to hold symbol list
-CSuperSlope*  slopeCalc;     // Slope calculator instance
-int          symbolCount;     // Number of symbols to monitor
-bool         initialized;     // Initialization flag
+CDashboardController* dashboard_controller;  // MVC Controller instance
+bool                  initialized;           // Initialization flag
 
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   // Initialize the symbol array
-   symbols = new CArrayString();
-   string currentSymbol = "";
+   Print("SuperSlopeDashboard: Initializing MVC architecture...");
    
-   // Parse the symbol list
-   for(int i = 0; i < StringLen(SymbolList); i++)
+   // Create CDashboardController instance
+   dashboard_controller = new CDashboardController();
+   if(dashboard_controller == NULL)
    {
-      if(SymbolList[i] == ',')
+      Print("ERROR: Failed to create CDashboardController instance");
+      return INIT_FAILED;
+   }
+   
+   // Initialize controller with input parameters
+   // Use default dashboard position (20, 50) - can be made configurable later
+   if(!dashboard_controller.Initialize(SlopeMAPeriod, SlopeATRPeriod, 20, 50))
+   {
+      Print("ERROR: Failed to initialize CDashboardController");
+      delete dashboard_controller;
+      dashboard_controller = NULL;
+      return INIT_FAILED;
+   }
+   
+   // Parse symbol list and create array for controller
+   string symbol_array[];
+   string current_symbol = "";
+   int symbol_count = 0;
+   
+   // Count symbols first to size array properly
+   for(int i = 0; i <= StringLen(SymbolList); i++)
+   {
+      if(i == StringLen(SymbolList) || SymbolList[i] == ',')
       {
-         if(currentSymbol != "")
+         if(StringLen(current_symbol) > 0)
          {
-            symbols.Add(currentSymbol);
-            currentSymbol = "";
+            symbol_count++;
          }
+         current_symbol = "";
       }
-      else if(i == StringLen(SymbolList) - 1)
+      else if(SymbolList[i] != ' ') // Skip spaces
       {
-         currentSymbol += SymbolList[i];
-         symbols.Add(currentSymbol);
-      }
-      else
-      {
-         currentSymbol += SymbolList[i];
+         current_symbol += SymbolList[i];
       }
    }
    
-   symbolCount = symbols.Total();
-   if(symbolCount == 0)
+   if(symbol_count == 0)
    {
-      Print("Error: No symbols provided in SymbolList");
+      Print("ERROR: No symbols provided in SymbolList");
+      delete dashboard_controller;
+      dashboard_controller = NULL;
       return INIT_PARAMETERS_INCORRECT;
    }
    
-   // Initialize the slope calculator
-   slopeCalc = new CSuperSlope();
-   if(!slopeCalc.Initialize(SlopeMAPeriod, SlopeATRPeriod, MaxBarsCalculate))
+   // Resize array and parse symbols again
+   ArrayResize(symbol_array, symbol_count);
+   current_symbol = "";
+   int array_index = 0;
+   
+   for(int i = 0; i <= StringLen(SymbolList); i++)
    {
-      Print("Error: Failed to initialize slope calculator");
+      if(i == StringLen(SymbolList) || SymbolList[i] == ',')
+      {
+         if(StringLen(current_symbol) > 0)
+         {
+            symbol_array[array_index] = current_symbol;
+            array_index++;
+         }
+         current_symbol = "";
+      }
+      else if(SymbolList[i] != ' ') // Skip spaces
+      {
+         current_symbol += SymbolList[i];
+      }
+   }
+   
+   // Set symbols in controller
+   if(!dashboard_controller.SetSymbols(symbol_array))
+   {
+      Print("ERROR: Failed to set symbols in CDashboardController");
+      delete dashboard_controller;
+      dashboard_controller = NULL;
+      return INIT_FAILED;
+   }
+   
+   // Set thresholds using input parameters
+   // Map: StrongThreshold -> strong_bull, WeakThreshold -> weak_bull, -StrongThreshold -> weak_bear
+   if(!dashboard_controller.SetThresholds(StrongThreshold, WeakThreshold, -StrongThreshold))
+   {
+      Print("ERROR: Failed to set thresholds in CDashboardController");
+      delete dashboard_controller;
+      dashboard_controller = NULL;
       return INIT_FAILED;
    }
    
    initialized = true;
+   Print("SuperSlopeDashboard: Initialization completed successfully");
+   Print("  - Symbols: ", symbol_count);
+   Print("  - MA Period: ", SlopeMAPeriod);
+   Print("  - ATR Period: ", SlopeATRPeriod);
+   Print("  - Strong Threshold: ", StrongThreshold);
+   Print("  - Weak Threshold: ", WeakThreshold);
+   
    return INIT_SUCCEEDED;
 }
 //+------------------------------------------------------------------+
@@ -86,21 +141,13 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   // Clean up objects
-   if(symbols != NULL)
+   // Clean up controller and all dashboard objects
+   if(dashboard_controller != NULL)
    {
-      delete symbols;
-      symbols = NULL;
+      dashboard_controller.Cleanup();
+      delete dashboard_controller;
+      dashboard_controller = NULL;
    }
-   
-   if(slopeCalc != NULL)
-   {
-      delete slopeCalc;
-      slopeCalc = NULL;
-   }
-   
-   // Remove all created objects
-   ObjectsDeleteAll(0, "SuperSlopeDash_");
 }
 
 //+------------------------------------------------------------------+
@@ -117,44 +164,12 @@ int OnCalculate(const int32_t rates_total,
                 const long &volume[],
                 const int32_t &spread[])
 {
-   if(!initialized || symbols == NULL || slopeCalc == NULL)
+   if(!initialized || dashboard_controller == NULL)
       return rates_total;
-      
-   // Arrays to hold categorized symbols
-   string strongBull[];   ArrayResize(strongBull, symbolCount);
-   string weakBull[];     ArrayResize(weakBull, symbolCount);
-   string neutral[];      ArrayResize(neutral, symbolCount);
-   string weakBear[];     ArrayResize(weakBear, symbolCount);
-   string strongBear[];   ArrayResize(strongBear, symbolCount);
-   
-   int strongBullCount = 0;
-   int weakBullCount = 0;
-   int neutralCount = 0;
-   int weakBearCount = 0;
-   int strongBearCount = 0;
-   
-   // Calculate and categorize each symbol
-   for(int i = 0; i < symbolCount; i++)
-   {
-      string symbol = symbols.At(i);
-      double slopeValue = slopeCalc.Calculate(symbol);
-      
-      // Categorize based on slope value
-      if(slopeValue >= StrongThreshold)
-         strongBull[strongBullCount++] = symbol;
-      else if(slopeValue >= WeakThreshold)
-         weakBull[weakBullCount++] = symbol;
-      else if(slopeValue > -WeakThreshold)
-         neutral[neutralCount++] = symbol;
-      else if(slopeValue > -StrongThreshold)
-         weakBear[weakBearCount++] = symbol;
-      else
-         strongBear[strongBearCount++] = symbol;
-   }
-   
-   // TODO: Add dashboard rendering code here
-   // This will be implemented in the CRenderer class
-   
+
+   // Let the MVC controller handle all calculations and rendering
+   dashboard_controller.Update();
+
    return rates_total;
 }
 //+------------------------------------------------------------------+

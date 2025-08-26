@@ -8,8 +8,12 @@ Agile/Iterative, with a focus on discrete, testable components.
 *   **Human (Tester/Manager):** Provides context, defines tasks, runs tests, provides feedback, and conducts final acceptance testing.
 
 **Development Rules**:
+- Use the Project Manifesto - Equity Curve Trading.md file when wider context is needed.
 - We will work on one file at a time.  If changes are needed to other files, stop and request confirmation first.
+- Always create a plan of actions for confirmation.
+- Always review your plan to ensure that you are considering any MQL5 constraints.
 - Request clarification if something is not clear.
+- Symbolic links are used to share files between dev and test.
 - Handling Include files
     - For custom includes #include <MyProjects/Trade/RiskManager.mqh> #include "..\Includes\MyProjects\Indicators\RSI.mqh"
     - For MT5 standard includes (not in the repo) #include <Trade/Trade.mqh>
@@ -18,9 +22,6 @@ Agile/Iterative, with a focus on discrete, testable components.
 
 ### Current Task
 
-Iteration 2.3: Unit Test Creation
-*   **Task 2.3.1 (LLM):** Write a standalone test script (`Test_Renderer.mq5`) that:
-    *   Includes `CRenderer.mqh`.
-    *   Creates a static, hardcoded data structure (e.g., an array of 5 lists, each containing 2-3 dummy symbol data).
-    *   Creates an instance of `CRenderer` and calls its `Draw` method with this fake data.
-*   **Deliverable:** `Test_Renderer.mq5`
+**Iteration 3.3: Integration Test Creation**
+*   **Task 3.3.1 (LLM):** Update the main `SuperSlopeDashboard.mq5` file to `#include` all three class files. In `OnInit()`, create instances of the three classes and initialize them. In `OnCalculate()`, call the controller's `Update()` method.
+*   **Deliverable:** `SuperSlopeDashboard.mq5` (v1.0 - integrated)

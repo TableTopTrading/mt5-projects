@@ -4,6 +4,10 @@
 //|                                          web3spotlight@gmail.com |
 //+------------------------------------------------------------------+
 
+//--- Layout constants
+#define COLUMNS 5                    // Number of strength columns
+#define MAX_SYMBOLS_PER_COL 10      // Max symbols per column
+
 //+------------------------------------------------------------------+
 //| Class for rendering the SuperSlopeDashboard visualization         |
 //+------------------------------------------------------------------+
@@ -23,10 +27,6 @@ private:
    color             m_column_colors[5];  // Colors for each strength column
    color             m_text_color;        // Text color
    color             m_background_color;  // Background color
-   
-   // Layout constants
-   static const int  COLUMNS = 5;         // Number of strength columns
-   static const int  MAX_SYMBOLS_PER_COL = 10; // Max symbols per column
 
 public:
    //--- Constructor and destructor
@@ -38,24 +38,25 @@ public:
    
    //--- Main rendering methods
    void              DrawDashboardHeaders(void);
-   void              Draw(string symbols_strong_bull[], int count_strong_bull,
-                         string symbols_weak_bull[], int count_weak_bull,
-                         string symbols_neutral[], int count_neutral,
-                         string symbols_weak_bear[], int count_weak_bear,
-                         string symbols_strong_bear[], int count_strong_bear,
-                         double values_strong_bull[], double values_weak_bull[],
-                         double values_neutral[], double values_weak_bear[],
-                         double values_strong_bear[]);
+   void              Draw(string &symbols_strong_bull[], int count_strong_bull,
+                         string &symbols_weak_bull[], int count_weak_bull,
+                         string &symbols_neutral[], int count_neutral,
+                         string &symbols_weak_bear[], int count_weak_bear,
+                         string &symbols_strong_bear[], int count_strong_bear,
+                         double &values_strong_bull[], double &values_weak_bull[],
+                         double &values_neutral[], double &values_weak_bear[],
+                         double &values_strong_bear[]);
    void              DeleteAllObjects(void);
    void              DrawSymbolRow(int column, int row, string symbol, double value);
    
    //--- Utility methods
-   void              GetSymbolsForCategory(const string &symbols[], const double &values[], 
+   void              GetSymbolsForCategory(string &symbols[], double &values[], 
                                           int strength_category, string &out_symbols[], 
                                           double &out_values[], int &count);
    int               GetStrengthCategory(double value);
    bool              ObjectsExist(void);
    int               GetObjectCount(void);
+   void              MakeObjectPersistent(string obj_name);
    
    //--- Utility methods
    void              SetColors(color strong_bull, color weak_bull, color neutral, 
@@ -119,7 +120,7 @@ bool CRenderer::Initialize(int start_x = 20, int start_y = 50)
 //+------------------------------------------------------------------+
 //| Utility method to get symbols for strength category              |
 //+------------------------------------------------------------------+
-void CRenderer::GetSymbolsForCategory(const string &symbols[], const double &values[], 
+void CRenderer::GetSymbolsForCategory(string &symbols[], double &values[], 
                                       int strength_category, string &out_symbols[], double &out_values[], int &count)
 {
    count = 0;
@@ -182,6 +183,17 @@ int CRenderer::GetObjectCount(void)
 }
 
 //+------------------------------------------------------------------+
+//| Make object persistent across script executions                   |
+//+------------------------------------------------------------------+
+void CRenderer::MakeObjectPersistent(string obj_name)
+{
+   ObjectSetInteger(0, obj_name, OBJPROP_BACK, false);
+   ObjectSetInteger(0, obj_name, OBJPROP_SELECTABLE, false);
+   ObjectSetInteger(0, obj_name, OBJPROP_SELECTED, false);
+   ObjectSetInteger(0, obj_name, OBJPROP_HIDDEN, false);
+}
+
+//+------------------------------------------------------------------+
 //| Draw dashboard headers                                             |
 //+------------------------------------------------------------------+
 void CRenderer::DrawDashboardHeaders(void)
@@ -217,14 +229,14 @@ void CRenderer::DrawDashboardHeaders(void)
 //+------------------------------------------------------------------+
 //| Main draw method with symbol data                                  |
 //+------------------------------------------------------------------+
-void CRenderer::Draw(string symbols_strong_bull[], int count_strong_bull,
-                    string symbols_weak_bull[], int count_weak_bull,
-                    string symbols_neutral[], int count_neutral,
-                    string symbols_weak_bear[], int count_weak_bear,
-                    string symbols_strong_bear[], int count_strong_bear,
-                    double values_strong_bull[], double values_weak_bull[],
-                    double values_neutral[], double values_weak_bear[],
-                    double values_strong_bear[])
+void CRenderer::Draw(string &symbols_strong_bull[], int count_strong_bull,
+                    string &symbols_weak_bull[], int count_weak_bull,
+                    string &symbols_neutral[], int count_neutral,
+                    string &symbols_weak_bear[], int count_weak_bear,
+                    string &symbols_strong_bear[], int count_strong_bear,
+                    double &values_strong_bull[], double &values_weak_bull[],
+                    double &values_neutral[], double &values_weak_bear[],
+                    double &values_strong_bear[])
 {
    // Clear existing objects
    DeleteAllObjects();
