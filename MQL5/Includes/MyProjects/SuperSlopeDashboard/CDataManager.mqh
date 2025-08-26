@@ -96,8 +96,8 @@ double CDataManager::CalculateStrengthValue(string symbol)
    ArraySetAsSeries(highs, true);
    ArraySetAsSeries(lows, true);
    
-   // Get sufficient historical data
-   int bars_needed = MathMax(m_ma_period, m_atr_period);
+   // Get sufficient historical data (need +1 for ATR calculation)
+   int bars_needed = MathMax(m_ma_period, m_atr_period) + 1;
    
    if(CopyClose(symbol, PERIOD_CURRENT, 0, bars_needed, closes) != bars_needed ||
       CopyHigh(symbol, PERIOD_CURRENT, 0, bars_needed, highs) != bars_needed ||
