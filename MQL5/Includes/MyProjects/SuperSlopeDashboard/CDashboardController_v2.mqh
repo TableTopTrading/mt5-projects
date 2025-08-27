@@ -359,9 +359,9 @@ int CDashboardController::CategorizeStrength(double strength_value)
       return 0; // Strong Bull
    else if(strength_value >= m_threshold_weak_bull)
       return 1; // Weak Bull
-   else if(strength_value >= m_threshold_weak_bear)
+   else if(strength_value >= -m_threshold_weak_bull)
       return 2; // Neutral
-   else if(strength_value >= (m_threshold_weak_bear * 2.0))
+   else if(strength_value >= -m_threshold_strong_bull)
       return 3; // Weak Bear
    else
       return 4; // Strong Bear
