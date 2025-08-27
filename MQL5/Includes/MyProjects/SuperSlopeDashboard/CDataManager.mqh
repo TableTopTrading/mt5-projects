@@ -4,21 +4,19 @@
 //|                                          web3spotlight@gmail.com |
 //+------------------------------------------------------------------+
 
-//--- Include required files
-#include <Trade/Trade.mqh>
-#include <MovingAverages.mqh>
-
 //+------------------------------------------------------------------+
 //| Class for managing data calculations in SuperSlopeDashboard        |
 //+------------------------------------------------------------------+
 class CDataManager
 {
 private:
-   int               m_ma_period;     // Moving Average period
+   int               m_ma_period;     // Moving Average period (LWMA)
    int               m_atr_period;    // ATR period
    int               m_max_bars;      // Maximum bars to calculate
-   double            m_ma_buffer[];   // Buffer for MA values
-   double            m_atr_buffer[];  // Buffer for ATR values
+   
+   // Private helper methods
+   double            CalculateLWMA(const double &price[], int shift, int period);
+   double            CalculateATR(const double &highs[], const double &lows[], const double &closes[], int shift, int period);
 
 public:
    //--- Constructor and destructor
@@ -71,9 +69,6 @@ bool CDataManager::Initialize(int ma_period, int atr_period, int max_bars)
    m_atr_period = atr_period;
    m_max_bars = max_bars;
    
-   ArrayResize(m_ma_buffer, m_max_bars);
-   ArrayResize(m_atr_buffer, m_max_bars);
-   
    return true;
 }
 
@@ -82,8 +77,43 @@ bool CDataManager::Initialize(int ma_period, int atr_period, int max_bars)
 //+------------------------------------------------------------------+
 void CDataManager::Deinitialize(void)
 {
-   ArrayFree(m_ma_buffer);
-   ArrayFree(m_atr_buffer);
+   // No dynamic resources to clean up in this version
+}
+
+//+------------------------------------------------------------------+
+//| Calculate LWMA manually                                            |
+//+------------------------------------------------------------------+
+double CDataManager::CalculateLWMA(const double &price[], int shift, int period)
+{
+   double sum = 0.0;
+   double weight_sum = 0.0;
+   
+   for (int i = 0; i < period; i++)
+   {
+      double weight = period - i;
+      sum += price[shift + i] * weight;
+      weight_sum += weight;
+   }
+   
+   if (weight_sum == 0.0) return 0.0;
+   return sum / weight_sum;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate ATR manually                                             |
+//+------------------------------------------------------------------+
+double CDataManager::CalculateATR(const double &highs[], const double &lows[], const double &closes[], int shift, int period)
+{
+   double atr = 0.0;
+   
+   for (int i = 0; i < period; i++)
+   {
+      double true_range = MathMax(highs[shift + i], closes[shift + i + 1]) - MathMin(lows[shift + i], closes[shift + i + 1]);
+      atr += true_range;
+   }
+   
+   atr /= period;
+   return atr;
 }
 
 //+------------------------------------------------------------------+
@@ -91,44 +121,44 @@ void CDataManager::Deinitialize(void)
 //+------------------------------------------------------------------+
 double CDataManager::CalculateStrengthValue(string symbol)
 {
-   double closes[], highs[], lows[];
+   // Copy price data for calculations
+   double closes[];
+   double highs[];
+   double lows[];
+   
+   int bars_needed = MathMax(m_ma_period, m_atr_period) + 20; // Buffer for calculations
+   
+   if (CopyClose(symbol, _Period, 0, bars_needed, closes) != bars_needed ||
+       CopyHigh(symbol, _Period, 0, bars_needed, highs) != bars_needed ||
+       CopyLow(symbol, _Period, 0, bars_needed, lows) != bars_needed)
+   {
+      Print("Failed to copy price data for ", symbol);
+      return 0.0;
+   }
+   
    ArraySetAsSeries(closes, true);
    ArraySetAsSeries(highs, true);
    ArraySetAsSeries(lows, true);
    
-   // Get sufficient historical data
-   int bars_needed = MathMax(m_ma_period, m_atr_period);
+   // Calculate LWMA for current and previous bars
+   double lwma_current = CalculateLWMA(closes, 0, m_ma_period);
+   double lwma_prev = CalculateLWMA(closes, 1, m_ma_period);
    
-   if(CopyClose(symbol, PERIOD_CURRENT, 0, bars_needed, closes) != bars_needed ||
-      CopyHigh(symbol, PERIOD_CURRENT, 0, bars_needed, highs) != bars_needed ||
-      CopyLow(symbol, PERIOD_CURRENT, 0, bars_needed, lows) != bars_needed)
+   // Calculate ATR manually
+   double atr = CalculateATR(highs, lows, closes, 10, m_atr_period); // Using shift=10 to match original logic
+   atr = atr / 10.0; // Scale down by 10 to match MQ4 behavior
+   
+   if (atr == 0.0) 
    {
-      Alert("Failed to copy price data for ", symbol);
       return 0.0;
    }
    
-   // Calculate SMA of closes
-   double sma = 0.0;
-   for(int i = 0; i < m_ma_period; i++)
-   {
-      sma += closes[i];
-   }
-   sma /= m_ma_period;
+   // Calculate previous value using the same formula as in GetSlope
+   double closePrice = closes[0];
+   double dblPrev = (lwma_prev * 231 + closePrice * 20) / 251;
    
-   // Calculate ATR
-   double atr = 0.0;
-   for(int i = 0; i < m_atr_period; i++)
-   {
-      double tr = MathMax(highs[i] - lows[i],
-                  MathMax(MathAbs(highs[i] - closes[i+1]),
-                         MathAbs(lows[i] - closes[i+1])));
-      atr += tr;
-   }
-   atr /= m_atr_period;
+   double result = (lwma_current - dblPrev) / atr;
    
-   // Avoid division by zero
-   if(atr == 0.0) return 0.0;
-   
-   // Return (close[0] - SMA[0]) / ATR[0]
-   return (closes[0] - sma) / atr;
+   Print("DEBUG: Symbol '", symbol, "' - Manual calculation: LWMA=", lwma_current, ", Prev=", dblPrev, ", ATR=", atr, ", Result=", result);
+   return result;
 }
