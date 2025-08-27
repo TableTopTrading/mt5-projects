@@ -1,0 +1,42 @@
+# Equity Curve Trading Project Memory Bank
+
+## Project Overview
+This memory bank contains essential documentation for the MT5 Equity Curve Trading System project, focusing on Epics 3 & 4 development.
+
+## Current Project Status
+- **Epic 1**: SuperSlope Indicator - ✅ COMPLETE
+- **Epic 2**: SuperSlopeDashboard - ✅ COMPLETE  
+- **Epic 3**: Equity Curve Signal EA - 🚧 IN PROGRESS
+- **Epic 4**: Live Trading EA - 📋 PLANNED
+
+## Key Components
+- **CDataManager**: Data calculation and strength processing
+- **CRenderer**: Dashboard visualization
+- **CDashboardController**: MVC orchestration
+- **CSuperSlope**: Core indicator calculations
+
+## Development Methodology
+- Agile/Iterative development
+- MVC architecture pattern
+- LLM-driven development with human testing
+- Component-based testing approach
+
+## File Structure
+```
+mt5-projects/
+├── DOC/                          # Project documentation
+├── MQL5/
+│   ├── Experts/MyProjects/       # EA development
+│   ├── Includes/MyProjects/      # Class implementations
+│   ├── Indicators/MyProjects/    # Indicator files
+│   └── Scripts/MyProjects/       # Testing scripts
+└── memory-bank/                  # This memory bank
+```
+
+## Important Notes
+- Use symbolic links for file sharing between dev and test environments
+- Follow MQL5 include conventions: 
+  - Custom includes: `#include <MyProjects/Path/File.mqh>`
+  - Standard includes: `#include <Trade/Trade.mqh>`
+- Always validate against MQL5 constraints
+- Maintain backward compatibility during development
