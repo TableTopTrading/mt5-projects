@@ -22,4 +22,4 @@ Agile/Iterative, with a focus on discrete, testable components.
 
 ### Current Task
 
-Integration testing and bug fixing
+There is an inconstancy in the slope strength results.  For example, with user settings the same on both the SuperSlope and the SuperSlopeDashboard indicators, I would expect the same result.  Instead the Superslope result for the current chart pair e.g. USDJPY pair is a close (but not accurate) match to the SuperSlopeDashboard result, while other pairs are displaying very strange results e.g. large positive or negative values.  

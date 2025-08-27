@@ -4,6 +4,9 @@
 //|                                          web3spotlight@gmail.com |
 //+------------------------------------------------------------------+
 
+//--- Include required MQL5 standard libraries
+// Note: MQL5 standard libraries are automatically available in MT5 environment
+
 //--- Layout constants
 #define COLUMNS 5                    // Number of strength columns
 #define MAX_SYMBOLS_PER_COL 10      // Max symbols per column
@@ -149,11 +152,13 @@ void CRenderer::GetSymbolsForCategory(string &symbols[], double &values[],
 //+------------------------------------------------------------------+
 int CRenderer::GetStrengthCategory(double value)
 {
-   if(value >= 2.0) return 0;      // Very Strong
-   if(value >= 1.0) return 1;      // Strong  
+   // Use the same thresholds as the controller for consistency
+   // These should match the controller's CategorizeStrength method
+   if(value >= 2.0) return 0;      // Strong Bull (Very Strong)
+   if(value >= 1.0) return 1;      // Weak Bull (Strong)  
    if(value >= -1.0) return 2;     // Neutral
-   if(value >= -2.0) return 3;     // Weak
-   return 4;                       // Very Weak
+   if(value >= -2.0) return 3;     // Weak Bear (Weak)
+   return 4;                       // Strong Bear (Very Weak)
 }
 
 //+------------------------------------------------------------------+

@@ -1,6 +1,6 @@
 
-**Last Updated:** 2025-08-26
-**Version:** 0.1.8 (CDashboardController v1.0 completed with compilation fixes)
+**Last Updated:** 2025-08-27
+**Version:** 0.2.0 (LWMA implementation completed for consistency with SuperSlope indicator)
 **Project Overview:** This document tracks all source files, documentation, and key information for the MT5 Equity Curve Project.
 
 ---
@@ -9,45 +9,48 @@
 
 A brief, high-level description of the project, its goal, and its architecture (MVC pattern).
 
-- This first project involves creating a MetaTrader 5 indicator that plots the strength of FX pairs (and other markets) based on a custom (SMA & ATR) calculation. This is now complete.
-- This project involves creating a MetaTrader 5 indicator that displays a real-time dashboard categorizing multiple forex symbols into strength buckets based on a custom (SMA & ATR) calculation. This is starting now.
-- The next project is to develop an EA to trade a 'dummy' account which produces an Equity Curve.
-- The next project is to develop an EA that consumes the Equity Curve EA's output, and trades a live account.
-
+- Epic 1 involves creating a MetaTrader 5 indicator that plots the strength of FX pairs (and other markets) based on a custom (LWMA & ATR) calculation. This is now complete.
+- Epic 2 involves creating a MetaTrader 5 indicator that displays a real-time dashboard categorizing multiple forex symbols into strength buckets based on a custom (LWMA & ATR) calculation. This is starting now.
+- Epic 3 is to develop an EA to trade a 'dummy' account which produces an Equity Curve.
+- Epic 4 project is to develop an EA that consumes the Equity Curve EA's output, and trades a live account.
+Following on from this we may want to include enhancements to:
+- Include a variety of Moving Average options
+- Include a variety of timeframe options
+- Include a variety of options for trade management.
 ## 2. File Manifest
 
 This section is the core of the document. It lists every file in the project with its purpose and status.
 
 ### 2.1 Core Source Files
 
-| File Name | Type | Purpose | Status | Version | Dependencies |
-| :-------- | :--- | :------ | :----- | :------ | :----------- |
-| SuperSlope.mq5 | Indicator | Main indicator file for SuperSlope | Complete | 1.0 | CSuperSlope.mqh |
-| CSuperSlope.mqh | Include | Implementation class for SuperSlope calculations | Complete | 1.0 | None |
-| SuperSlopeDashboard.mq5 | Indicator | Dashboard indicator for market strength | Complete | 1.0 | CDashboardController_v2.mqh, CDataManager.mqh, CRenderer.mqh |
-| CDataManager.mqh | Include | Data management class for dashboard | Complete | 1.0 | Trade\Trade.mqh, MovingAverages.mqh |
-| CRenderer.mqh | Include | Dashboard visualization class | Complete | 1.0 | None |
-| CDashboardController.mqh | Include | Controller orchestrating Model-View | Complete | 1.0 | CDataManager.mqh, CRenderer.mqh |
-| CDashboardController_v2.mqh | Include | Fixed version with compilation corrections | Complete | 1.0 | CDataManager.mqh, CRenderer.mqh |
+| File Name                   | Type      | Purpose                                          | Status   | Version | Dependencies                                                 |
+| :-------------------------- | :-------- | :----------------------------------------------- | :------- | :------ | :----------------------------------------------------------- |
+| SuperSlope.mq5              | Indicator | Main indicator file for SuperSlope               | Complete | 1.0     | CSuperSlope.mqh                                              |
+| CSuperSlope.mqh             | Include   | Implementation class for SuperSlope calculations | Complete | 1.0     | None                                                         |
+| SuperSlopeDashboard.mq5     | Indicator | Dashboard indicator for market strength          | Complete | 1.0     | CDashboardController_v2.mqh, CDataManager.mqh, CRenderer.mqh |
+| CDataManager.mqh            | Include   | Data management class for dashboard              | Complete | 1.0     | None (uses manual price data calculations)                   |
+| CRenderer.mqh               | Include   | Dashboard visualization class                    | Complete | 1.0     | None                                                         |
+| CDashboardController.mqh    | Include   | Controller orchestrating Model-View              | Complete | 1.0     | CDataManager.mqh, CRenderer.mqh                              |
+| CDashboardController_v2.mqh | Include   | Fixed version with compilation corrections       | Complete | 1.0     | CDataManager.mqh, CRenderer.mqh                              |
 
 ### 2.2 Test Files
 
-| File Name | Type | Purpose | Status |
-| :-------- | :--- | :------ | :----- |
-| Test_DataManager.mq5 | Script | Unit test for CDataManager class | Passed ✅ |
-| Test_Renderer.mq5 | Script | Unit test for CRenderer class | Passed ✅ |
+| File Name              | Type   | Purpose                                  | Status    |
+| :--------------------- | :----- | :--------------------------------------- | :-------- |
+| Test_DataManager.mq5   | Script | Unit test for CDataManager class         | Passed ✅  |
+| Test_Renderer.mq5      | Script | Unit test for CRenderer class            | Passed ✅  |
 | Test_Controller_v2.mq5 | Script | Unit test for CDashboardController class | Created ✅ |
-| Test_Controller_v3.mq5 | Script | Updated test with fixed include paths | Ready ✅ |
-| Test_Compile_Final.mq5 | Script | Compilation verification test | Ready ✅ |
+| Test_Controller_v3.mq5 | Script | Updated test with fixed include paths    | Passed ✅  |
+| Test_Compile_Final.mq5 | Script | Compilation verification test            | Passed ✅  |
 
 ### 2.3 Documentation
 
-| File Name                                      | Purpose                                            |
-| :--------------------------------------------- | :------------------------------------------------- |
-| `PROJECT_MANIFEST.md`                          | (This file) The central registry for the project.  |
-| `Project Context - SlopeStrength Dashboard.md` | Provides high-level context for developers (LLMs). |
-| `SuperSlope_User_Guide.md`                    | Complete user documentation for SuperSlope indicator |
-| `Project Manifest - Equity Curve Trading.md`  | Project tracking and documentation for the full project suite |
+| File Name                                      | Purpose                                                       |
+| :--------------------------------------------- | :------------------------------------------------------------ |
+| `PROJECT_MANIFEST.md`                          | (This file) The central registry for the project.             |
+| `Project Context - SlopeStrength Dashboard.md` | Provides high-level context for developers (LLMs).            |
+| `SuperSlope_User_Guide.md`                     | Complete user documentation for SuperSlope indicator          |
+| `Project Manifest - Equity Curve Trading.md`   | Project tracking and documentation for the full project suite |
 
 ---
 
@@ -63,29 +66,19 @@ This section is the core of the document. It lists every file in the project wit
 *   **Methods**: 
     - `Calculate()`: Performs the normalized slope calculation
     - `Initialize()`: Sets up indicator buffers and parameters
-    
-### Completed Components
-
-#### CSuperSlope
-*   **Purpose**: Implements the core SuperSlope calculation logic
-*   **Attributes**: 
-    - `m_ma_period`: Period for the Linear Weighted Moving Average
-    - `m_atr_period`: Period for the Average True Range
-*   **Methods**: 
-    - `Calculate()`: Performs the normalized slope calculation
-    - `Initialize()`: Sets up indicator buffers and parameters
 
 #### CDataManager
-*   **Purpose**: Manages data calculations for the strength dashboard
+*   **Purpose**: Manages data calculations for the strength dashboard using manual price data calculations
 *   **Attributes**: 
-    - `m_ma_period`: Moving Average period
+    - `m_ma_period`: Moving Average period (LWMA)
     - `m_atr_period`: ATR period
     - `m_max_bars`: Maximum bars to calculate
-    - `m_ma_buffer[]`: Buffer for MA values
-    - `m_atr_buffer[]`: Buffer for ATR values
 *   **Methods**: 
     - `Initialize()`: Sets up calculation parameters
-    - `CalculateStrengthValue()`: Calculates strength value for a symbol using (close[0] - SMA[0]) / ATR[0]
+    - `CalculateStrengthValue()`: Calculates strength value for a symbol using manual LWMA and ATR calculations from price data
+    - `Deinitialize()`: Cleans up resources
+    - `CalculateLWMA()`: Manually calculates Linear Weighted Moving Average
+    - `CalculateATR()`: Manually calculates Average True Range
 
 #### CRenderer
 *   **Purpose**: Handles dashboard visualization
@@ -101,8 +94,6 @@ This section is the core of the document. It lists every file in the project wit
     - `DeleteAllObjects()`: Cleans up all SSD_ prefixed objects
     - `DrawSymbolRow()`: Displays individual symbol entries
     - `SetColors()`, `SetPosition()`, `SetDimensions()`: Configuration methods
-
-### Completed Components
 
 #### CDashboardController
 *   **Purpose**: Orchestrates Model-View communication for the strength dashboard
@@ -128,18 +119,19 @@ This section is the core of the document. It lists every file in the project wit
 
 A changelog to track progress and changes.
 
-| Version   | Date       | Author | Description                             |
-| :-------- | :--------- | :----- | :-------------------------------------- |
-| **0.1.0** | 2025-08-25 | CM     | SlopeStrength Indicator completed       |
-| 0.1.1     | 2025-08-26 | CM     | Project Initiation of Dashboard Project |
-| 0.1.2     | 2025-08-26 | Claude | Implemented basic Dashboard structure   |
-| 0.1.3     | 2025-08-26 | Claude | Completed CDataManager implementation   |
-| 0.1.4     | 2025-08-26 | Claude | Created Test_DataManager script        |
-| 0.1.5     | 2025-08-26 | Claude | CDataManager unit test passed (EURUSD: 1.0126) |
-| 0.1.6     | 2025-08-26 | Claude | Created CRenderer class structure       |
-| 0.1.7     | 2025-08-26 | Claude | Completed CDashboardController v1.0 implementation |
-| **0.1.8** | 2025-08-26 | Claude | Fixed compilation errors, created test suite |
-| **1.0.0** | 2025-08-26 | Claude | MVC integration complete, SuperSlopeDashboard.mq5 v1.0 delivered |
+| Version   | Date       | Author | Description                                                                                                  |
+| :-------- | :--------- | :----- | :----------------------------------------------------------------------------------------------------------- |
+| **0.1.0** | 2025-08-25 | CM     | SlopeStrength Indicator completed                                                                            |
+| 0.1.1     | 2025-08-26 | CM     | Project Initiation of Dashboard Project                                                                      |
+| 0.1.2     | 2025-08-26 | Claude | Implemented basic Dashboard structure                                                                        |
+| 0.1.3     | 2025-08-26 | Claude | Completed CDataManager implementation                                                                        |
+| 0.1.4     | 2025-08-26 | Claude | Created Test_DataManager script                                                                              |
+| 0.1.5     | 2025-08-26 | Claude | CDataManager unit test passed (EURUSD: 1.0126)                                                               |
+| 0.1.6     | 2025-08-26 | Claude | Created CRenderer class structure                                                                            |
+| 0.1.7     | 2025-08-26 | Claude | Completed CDashboardController v1.0 implementation                                                           |
+| **0.1.8** | 2025-08-26 | Claude | Fixed compilation errors, created test suite                                                                 |
+| **0.1.9** | 2025-08-26 | Claude | MVC integration complete, SuperSlopeDashboard.mq5 v1.0 delivered for full integration and acceptance testing |
+| **0.2.0** | 2025-08-27 | Claude | Fixed ERR_INDICATOR_NO_DATA issue by replacing indicator handles with manual price data calculations |
 
 ---
 
@@ -252,7 +244,7 @@ DONE - **Iteration 2.4: Unit Testing & Feedback Loop**
 
 ---
 
-DOING ### **Phase 3: Development of the Controller (`CDashboardController` Class)**
+DONE ### **Phase 3: Development of the Controller (`CDashboardController` Class)**
 **Objective:** Create the logic that orchestrates the Model and View.
 
 DONE - **Iteration 3.1: Core Class Structure & Data Handling**
@@ -275,19 +267,22 @@ DONE - **Iteration 3.3: Integration Test Creation**
 
 ---
 
+### DOING
 ### **Phase 4: Integration Testing & Bug Fixing**
 **Objective:** Combine all components and test them as a whole system.
-*   **Task 4.1 (Human):** Compile and load the integrated `SuperSlopeDashboard.mq5` indicator onto a chart.
+DONE *   **Task 4.1 (Human):** Compile and load the integrated `SuperSlopeDashboard.mq5` indicator onto a chart.
 *   **Task 4.2 (Human):** **Integration Test:**
-    *   **Test 1 (Functionality):** Does the dashboard appear? Does it show multiple symbols? Are they in the correct columns based on their strength value?
-    *   **Test 2 (Configuration):** Change the `MA_Period` input. Does the dashboard update and recalculate values?
+  Done  *   **Test 1 (Functionality):** Does the dashboard appear? Does it show multiple symbols? Are they in the correct columns based on their strength value?
+  **  *   **Test 2 (Configuration):** Change the `MA_Period` input. Does the dashboard update and recalculate values?
+* [ ] Yes it does but it is not using the LWMA (i.e. it dos not match the slopestrength indicator)
     *   **Test 3 (Robustness):** Add a non-existent symbol (e.g., "FOOBAR") to the symbol list. Does the indicator handle the error gracefully without crashing? (It should skip it and perhaps print a warning).
 *   **Task 4.3 (Human):** Log any bugs or unexpected behavior and provide feedback to the LLM.
 *   **Task 4.4 (LLM):** Fix identified bugs iteratively.
 *   **Gate:** Proceed to Phase 5 after the indicator passes basic integration testing.
-
+**
 ---
 
+### ToDo
 ### **Phase 5: Acceptance Testing (Against User Stories)**
 **Objective:** Verify the complete system meets the original requirements.
 *   **Task 5.1 (Human):** Execute **Acceptance Tests** based on the "Acceptance Criteria" from the User Stories (Sprint 1: MVP).
@@ -305,3 +300,11 @@ DONE - **Iteration 3.3: Integration Test Creation**
 ---
 
 ### Known Issues
+* It would be useful to show the threshold in the heading for each column e.g. Strong Bull (>0.2) - based on the user input.
+* It would be useful to have an arrow next to the pair value showing the change since the previous bar - up to down - user option.
+* It would be useful to be multi-timeframe enabled - i.e. 
+* Too many logs in the log file - this can be reduced.
+
+### Recent Updates
+- **2025-08-27**: Fixed SMA/LWMA inconsistency - CDataManager now uses Linear Weighted Moving Average (LWMA) via built-in iMA() function with MODE_LWMA parameter, ensuring consistency with the main SuperSlope indicator
+- **2025-08-27**: Updated CDataManager to use indicator handle management for better performance and consistency

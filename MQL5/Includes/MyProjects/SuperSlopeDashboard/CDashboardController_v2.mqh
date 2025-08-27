@@ -9,11 +9,11 @@
 #include <MyProjects/SuperSlopeDashboard/CRenderer.mqh>
 
 //--- Constants for strength categorization
-#define STRONG_BULL_THRESHOLD    2.0
-#define WEAK_BULL_THRESHOLD      1.0
-#define NEUTRAL_UPPER_THRESHOLD  1.0
-#define NEUTRAL_LOWER_THRESHOLD -1.0
-#define WEAK_BEAR_THRESHOLD     -2.0
+#define STRONG_BULL_THRESHOLD    1.0    // Match SuperSlope default thresholds
+#define WEAK_BULL_THRESHOLD      0.5
+#define NEUTRAL_UPPER_THRESHOLD  0.5
+#define NEUTRAL_LOWER_THRESHOLD -0.5
+#define WEAK_BEAR_THRESHOLD     -1.0
 #define MAX_SYMBOLS_PER_DASHBOARD 50
 
 //+------------------------------------------------------------------+
@@ -52,6 +52,7 @@ private:
    void              SortSymbolsByStrength(void);
    bool              IsValidSymbol(string symbol);
    void              ResizeArrays(int new_size);
+   void              DebugLogSymbolProcessing(string symbol, bool is_valid, double strength, int category);
 
 public:
    //--- Constructor and destructor
@@ -59,11 +60,11 @@ public:
                     ~CDashboardController(void);
    
    //--- Initialization and configuration
-   bool              Initialize(int ma_period = 20, int atr_period = 14, 
+   bool              Initialize(int ma_period = 7, int atr_period = 50, 
                                int dashboard_x = 20, int dashboard_y = 50);
    bool              SetSymbols(string &symbols[]);
-   bool              SetThresholds(double strong_bull = 2.0, double weak_bull = 1.0, 
-                                  double weak_bear = -2.0);
+   bool              SetThresholds(double strong_bull = 1.0, double weak_bull = 0.5, 
+                                  double weak_bear = -1.0);
    bool              SetDashboardPosition(int x, int y);
    void              SetColors(color strong_bull_color, color weak_bull_color, 
                               color neutral_color, color weak_bear_color, 
@@ -90,12 +91,12 @@ public:
 //+------------------------------------------------------------------+
 CDashboardController::CDashboardController(void)
 {
-   // Initialize configuration with default values
+   // Initialize configuration with default values (match SuperSlope defaults)
    m_threshold_strong_bull = STRONG_BULL_THRESHOLD;
    m_threshold_weak_bull = WEAK_BULL_THRESHOLD;
    m_threshold_weak_bear = WEAK_BEAR_THRESHOLD;
-   m_ma_period = 20;
-   m_atr_period = 14;
+   m_ma_period = 7;    // Match SuperSlope default
+   m_atr_period = 50;  // Match SuperSlope default
    
    // Initialize dashboard position
    m_dashboard_x = 20;
@@ -123,7 +124,7 @@ CDashboardController::~CDashboardController(void)
 //+------------------------------------------------------------------+
 //| Initialize the controller with all components                      |
 //+------------------------------------------------------------------+
-bool CDashboardController::Initialize(int ma_period = 20, int atr_period = 14, 
+bool CDashboardController::Initialize(int ma_period = 7, int atr_period = 50, 
                                      int dashboard_x = 20, int dashboard_y = 50)
 {
    Print("CDashboardController: Initializing...");
@@ -194,6 +195,7 @@ bool CDashboardController::SetSymbols(string &symbols[])
          m_strength_values[valid_count] = 0.0;
          m_categories[valid_count] = 2; // Default to neutral
          m_valid_data[valid_count] = false;
+         Print("Added symbol to monitoring: ", symbols[i]);
          valid_count++;
       }
       else
@@ -217,8 +219,8 @@ bool CDashboardController::SetSymbols(string &symbols[])
 //+------------------------------------------------------------------+
 //| Set strength categorization thresholds                            |
 //+------------------------------------------------------------------+
-bool CDashboardController::SetThresholds(double strong_bull = 2.0, double weak_bull = 1.0, 
-                                         double weak_bear = -2.0)
+bool CDashboardController::SetThresholds(double strong_bull = 1.0, double weak_bull = 0.5, 
+                                         double weak_bear = -1.0)
 {
    // Validate threshold logic
    if(strong_bull <= weak_bull || weak_bull <= 0 || weak_bear >= 0 || weak_bear >= weak_bull)
@@ -411,8 +413,14 @@ bool CDashboardController::Update(void)
    {
       string symbol = m_symbols[i];
       
+      // Debug: Print which symbol is being processed
+      Print("Processing symbol: ", symbol);
+      
       // Calculate strength using CDataManager
       double strength = m_data_manager.CalculateStrengthValue(symbol);
+      
+      // Debug: Print calculation result
+      Print("  Strength result: ", DoubleToString(strength, 6));
       
       // Check if calculation was successful (valid data)
       if(strength != EMPTY_VALUE && strength != 0.0)
@@ -421,11 +429,19 @@ bool CDashboardController::Update(void)
          m_categories[i] = CategorizeStrength(strength);
          m_valid_data[i] = true;
          valid_symbol_count++;
+         Print("  Valid data: true, Category: ", m_categories[i]);
+         
+         // Debug logging for successful processing
+         DebugLogSymbolProcessing(symbol, true, strength, m_categories[i]);
       }
       else
       {
          m_valid_data[i] = false;
          // Keep previous values for invalid data
+         Print("  Valid data: false");
+         
+         // Debug logging for failed processing
+         DebugLogSymbolProcessing(symbol, false, strength, -1);
       }
    }
    
@@ -574,4 +590,25 @@ void CDashboardController::SortSymbolsByStrength(void)
          }
       }
    }
+}
+
+//+------------------------------------------------------------------+
+//| Debug logging for symbol processing                              |
+//+------------------------------------------------------------------+
+void CDashboardController::DebugLogSymbolProcessing(string symbol, bool is_valid, double strength, int category)
+{
+   string category_name;
+   switch(category)
+   {
+      case 0: category_name = "Strong Bull"; break;
+      case 1: category_name = "Weak Bull"; break;
+      case 2: category_name = "Neutral"; break;
+      case 3: category_name = "Weak Bear"; break;
+      case 4: category_name = "Strong Bear"; break;
+      default: category_name = "Unknown"; break;
+   }
+   
+   Print("DEBUG: Symbol '", symbol, "' - Valid: ", is_valid, 
+         ", Strength: ", DoubleToString(strength, 6), 
+         ", Category: ", category_name);
 }

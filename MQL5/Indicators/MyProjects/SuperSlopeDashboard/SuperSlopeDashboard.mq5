@@ -11,7 +11,6 @@
 #property strict
 
 // Include files
-#include <Arrays\ArrayString.mqh>
 #include <MyProjects/SuperSlopeDashboard/CDashboardController_v2.mqh>
 
 //--- Input Parameters
@@ -47,7 +46,7 @@ int OnInit()
    }
    
    // Initialize controller with input parameters
-   if(!dashboard_controller.Initialize(SlopeMAPeriod, SlopeATRPeriod, 20, 50))
+   if(!dashboard_controller.Initialize(SlopeMAPeriod, SlopeATRPeriod, MaxBarsCalculate))
    {
       Print("ERROR: Failed to initialize CDashboardController");
       delete dashboard_controller;
