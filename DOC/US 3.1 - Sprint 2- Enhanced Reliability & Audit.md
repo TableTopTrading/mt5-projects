@@ -15,8 +15,8 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
   - #include <Trade/PositionInfo.mqh>
 - [x] Update CEquityCurveController.mqh to include necessary standard headers
 - [x] Remove any compilation errors caused by placeholder code
-- [ ] Verify all components compile without warnings
-- [ ] Test basic functionality in Strategy Tester
+- [x] Verify all components compile without warnings
+- [x] Test basic functionality in Strategy Tester
 
 __Dependencies:__ None (builds on existing Sprint 1 foundation)
 

@@ -100,7 +100,7 @@ bool CEquityCurveController::ValidateAccountType(void)
     }
     
     // Get account trade mode
-    int account_mode = AccountInfoInteger(ACCOUNT_TRADE_MODE);
+    long account_mode = AccountInfoInteger(ACCOUNT_TRADE_MODE);
     
     // Allow only demo accounts for live trading
     if(account_mode == ACCOUNT_TRADE_MODE_DEMO)
