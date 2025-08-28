@@ -37,13 +37,25 @@ The implementation includes:
 
 The class is designed as a controller for managing Equity Curve EA initialization and setup, including account validation, directory setup, logging configuration, and cleanup operations. The implementation provides a solid foundation that can be integrated with the existing EA skeleton once the standard MQL5 includes are available in the compilation environment.
 
-### Current Task - Sprint 1.3
+#### Spring 1.3 
+## Key Improvements Made:
 
-Add Account Type Validation Logic
-**Activities:**
-- [ ] Implement ValidateAccountType() method in CEquityCurveController
-- [ ] Use AccountInfoInteger(ACCOUNT_TRADE_MODE) to check account type
-- [ ] Add logic to allow only ACCOUNT_TRADE_MODE_DEMO and Strategy Tester
-- [ ] Implement graceful error handling with clear messages
-- [ ] Log validation results for audit trail
+1. __Strategy Tester Detection__: Added `MQLInfoInteger(MQL_TESTER)` check that allows immediate validation when running in Strategy Tester mode.
+2. __Restricted Account Types__:
+	   - Now only allows ACCOUNT_TRADE_MODE_DEMO for live trading
+	   - Explicitly rejects ACCOUNT_TRADE_MODE_REAL with clear error message
+	   - Rejects ACCOUNT_TRADE_MODE_CONTEST with specific error message
+	   - Handles unknown account types gracefully
+3. __Enhanced Error Handling__:
+	   - Clear, descriptive error messages for each rejection scenario
+	   - Success messages for approved account types
+	   - Comprehensive logging for audit trail purposes
+4. __Removed Unnecessary Logic__:
+	   - Removed the balance check since it wasn't required for account type validation
+	   - Simplified the validation flow for better maintainability
+##### Validation Logic:
+- __Allowed__: Strategy Tester (MQL_TESTER) and Demo accounts (ACCOUNT_TRADE_MODE_DEMO)
+- __Rejected__: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST), and any unknown account types
+
+### Current Task - Sprint 
 - [ ] Test with different account types to ensure restrictions work

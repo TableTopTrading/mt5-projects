@@ -426,6 +426,13 @@ public:
 };
 ```
 
+#### Account Validation Logic
+The ValidateAccountType() method implements strict account type restrictions:
+- **Allowed**: Strategy Tester (MQL_TESTER) and Demo accounts (ACCOUNT_TRADE_MODE_DEMO)
+- **Rejected**: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST)
+- **Security**: Provides clear error messages and comprehensive logging for audit trail
+- **Safety**: Prevents accidental execution on unauthorized account types
+
 ## Data Structures and Enums
 
 ### Common Enumerations

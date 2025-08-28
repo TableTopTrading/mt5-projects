@@ -91,29 +91,39 @@ bool CEquityCurveController::Initialize(void)
 //+------------------------------------------------------------------+
 bool CEquityCurveController::ValidateAccountType(void)
 {
-    // Check if this is a demo account (recommended for testing)
-    if(AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO)
+    // First check if running in Strategy Tester - always allow
+    if(MQLInfoInteger(MQL_TESTER))
     {
-        Print("Running on demo account - suitable for testing");
+        Print("Running in Strategy Tester mode - validation passed");
         return true;
     }
     
-    // Allow real accounts but with warning
-    if(AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_REAL)
+    // Get account trade mode
+    int account_mode = AccountInfoInteger(ACCOUNT_TRADE_MODE);
+    
+    // Allow only demo accounts for live trading
+    if(account_mode == ACCOUNT_TRADE_MODE_DEMO)
     {
-        Print("WARNING: Running on real account - use with caution");
+        Print("Running on demo account - validation passed");
         return true;
     }
     
-    // Check for sufficient balance
-    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-    if(balance < 100.0) // Minimum balance check
+    // Reject all other account types with specific error messages
+    if(account_mode == ACCOUNT_TRADE_MODE_REAL)
     {
-        Print("Insufficient account balance: ", balance);
+        Print("ERROR: Real accounts are not allowed. Please use demo account or Strategy Tester.");
         return false;
     }
     
-    return true;
+    if(account_mode == ACCOUNT_TRADE_MODE_CONTEST)
+    {
+        Print("ERROR: Contest accounts are not supported.");
+        return false;
+    }
+    
+    // Handle unknown account types
+    Print("ERROR: Unsupported account type detected: ", account_mode);
+    return false;
 }
 
 //+------------------------------------------------------------------+

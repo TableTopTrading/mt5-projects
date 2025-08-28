@@ -28,11 +28,11 @@ Sprint 1 focuses on establishing the fundamental infrastructure for the Equity C
 
 ### 3. Add Account Type Validation Logic
 **Activities:**
-- [ ] Implement ValidateAccountType() method in CEquityCurveController
-- [ ] Use AccountInfoInteger(ACCOUNT_TRADE_MODE) to check account type
-- [ ] Add logic to allow only ACCOUNT_TRADE_MODE_DEMO and Strategy Tester
-- [ ] Implement graceful error handling with clear messages
-- [ ] Log validation results for audit trail
+- [x] Implement ValidateAccountType() method in CEquityCurveController
+- [x] Use AccountInfoInteger(ACCOUNT_TRADE_MODE) to check account type
+- [x] Add logic to allow only ACCOUNT_TRADE_MODE_DEMO and Strategy Tester
+- [x] Implement graceful error handling with clear messages
+- [x] Log validation results for audit trail
 - [ ] Test with different account types to ensure restrictions work
 
 **Dependencies:** CEquityCurveController class structure in place
