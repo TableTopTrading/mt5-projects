@@ -34,7 +34,7 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 - __Architecture Readiness__: Foundation laid for future components (CTradeManager, CPositionTracker, file operations)
 - __Clean Codebase__: All compilation warnings and placeholder issues resolved
 #### Sprint 2.2: Directory Creation Implementation for the Equity Curve Signal EA. 
-1. __Files/File.mqh Integration__: Added the necessary include for file operations functionality
+1. __Files/File.mqh Integration__: This was not required and instead used mql5 built in functions.
 2. __Directory Creation Implementation__: Completely rewrote the `SetupDirectories()` method to actually create directories instead of just setting path strings
 3. __Comprehensive Error Handling__: Implemented robust error handling with:
 	   - Directory existence checks using `FileIsExist()` before creation attempts
@@ -47,30 +47,16 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	   - `EquityCurveSignals\Configuration`
 6. __Helper Function__: Created `CreateDirectoryWithCheck()` utility function that handles existence checks and error reporting
 7. __Memory Bank Updated__: Enhanced technical documentation to reflect the directory management implementation status
-##### Key Features Implemented
-- __Smart Directory Creation__: Checks if directories already exist before attempting creation
-- __Detailed Error Reporting__: Provides specific error codes when directory creation fails
-- __Comprehensive Logging__: Logs both successful creations and failures with descriptive messages
-- __Robust Error Handling__: Individual error handling for each directory with proper return values
-- __Common File Area__: Uses `FILE_COMMON` flag for directory operations in the common files area
-
-The directory creation system is now fully functional and ready for testing in both Strategy Tester and demo accounts. The implementation follows MQL5 best practices and provides comprehensive error handling and logging for audit trail purposes.
-
-
 
 ---
-### Current Task - Sprint 2.2: Directory Creation Implementation
-- __Objective:__ Implement actual directory creation with proper error handling 
+### Current Task - Sprint 2.3: File-Based Logging Implementation
+- __Objective:__ Replace Print statements with actual file-based logging 
 - __Activities:__
-- [ ] Modify SetupDirectories() method in CEquityCurveController to use FileCreateDirectory
-- [ ] Create all required directories:
-  - EquityCurveSignals\Logs\\
-  - EquityCurveSignals\Output\\
-  - EquityCurveSignals\Configuration\\
-- [ ] Add comprehensive error handling for directory creation failures
-- [ ] Implement directory existence checks before creation
-- [ ] Log directory creation events with success/failure status
-- [ ] Update memory bank with enhancements and changes
-Human Tasks:
-- [ ] Test directory creation in both Strategy Tester and demo accounts
-- [ ] Verify directory permissions and accessibility
+- [ ] Implement file handle management in CEquityCurveController
+- [ ] Modify ConfigureLogging() to create and open log files
+- [ ] Update LogInfo(), LogWarning(), LogError() methods to write to files
+- [ ] Implement log rotation based on file size or time
+- [ ] Add timestamping to all log entries
+- [ ] Ensure proper file closing in Cleanup() method
+- [ ] Test logging functionality with various message types
+- [ ] Verify log files are created in the correct directory
