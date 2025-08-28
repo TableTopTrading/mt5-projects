@@ -126,11 +126,11 @@ public:
 
 ### Sprint 1: Core Framework Foundation (Highest Priority)
 [[US 3.1 - Sprint 1- Core Framework Foundation - Tasks and Activities]]
-- [ ] Create EquityCurveSignalEA.mq5 skeleton
-- [ ] Implement CEquityCurveController class structure
-- [ ] Add account type validation logic
-- [ ] Set up basic logging framework
-- [ ] Create directory management system
+- [x] Create EquityCurveSignalEA.mq5 skeleton
+- [x] Implement CEquityCurveController class structure
+- [x] Add account type validation logic
+- [x] Set up basic logging framework
+- [x] Create directory management system
 
 ### Sprint 2: Enhanced Reliability & Audit (Medium Priority)
 - [ ] Comprehensive error handling
