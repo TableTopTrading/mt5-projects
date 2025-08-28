@@ -14,27 +14,15 @@
     - For MT5 standard includes (not in the repo) #include <Trade/Trade.mqh>
 ### Current Task
 
-Decompose the user story below into a set of deliverables.
-Produce a design of each technical component.
-Identify the end user tests for each component.
-Prioritise each to be delivered as a Sprint.
-### User Story 3.1: Core EA Framework Setup
+Create EquityCurveSignalEA.mq5 Skeleton
 
-**As a** trader  
-**I want** an EA framework that can run on demo accounts or in Strategy Tester  
-**So that** I can generate equity curve signals without risking real capital
+**Activities:**
+- [ ] Create new file `MQL5/Experts/MyProjects/EquityCurveSignalEA.mq5`
+- [ ] Add standard MQL5 EA properties (copyright, version, strict mode)
+- [ ] Include necessary header files (e.g., CEquityCurveController)
+- [ ] Implement basic event handlers: OnInit(), OnDeinit(), OnTick()
+- [ ] Add global controller object instantiation
+- [ ] Ensure compilation without errors
+- [ ] Update memory-bank
 
-#### Acceptance Criteria:
-
-- [ ] EA initializes correctly on demo accounts and Strategy Tester
-- [ ] EA validates that it's not running on a live account (safety check)
-- [ ] EA creates necessary file directories for output
-- [ ] EA logs all initialization parameters for audit trail
-- [ ] EA implements proper cleanup on deinitialization
-
-#### Technical Tasks:
-
-- Create `EquityCurveSignalEA.mq5` main file
-- Implement `CEquityCurveController` class for orchestration
-- Add account type validation
-- Set up logging framework
+**Dependencies:** None (foundational file)
