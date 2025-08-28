@@ -8,6 +8,7 @@
 
 // Include necessary MQL5 standard headers
 #include <Trade/AccountInfo.mqh>
+#include <Files/File.mqh>
 
 //+------------------------------------------------------------------+
 //| Class for managing Equity Curve EA initialization and setup      |
@@ -135,15 +136,58 @@ bool CEquityCurveController::SetupDirectories(void)
     // Set paths for EquityCurveSignals directories
     m_log_path = "EquityCurveSignals\\Logs\\";
     m_output_path = "EquityCurveSignals\\Output\\";
+    string config_path = "EquityCurveSignals\\Configuration\\";
     
-    // Directory setup will be fully implemented when standard includes are available
-    LogInfo("Directory structure configured for EquityCurveSignals");
+    // Create all required directories with error handling
+    if(!CreateDirectoryWithCheck(m_log_path))
+    {
+        LogError("Failed to create log directory: " + m_log_path);
+        return false;
+    }
+    
+    if(!CreateDirectoryWithCheck(m_output_path))
+    {
+        LogError("Failed to create output directory: " + m_output_path);
+        return false;
+    }
+    
+    if(!CreateDirectoryWithCheck(config_path))
+    {
+        LogError("Failed to create configuration directory: " + config_path);
+        return false;
+    }
+    
+    LogInfo("Directory structure created successfully for EquityCurveSignals");
     LogInfo("Log path: " + m_log_path);
     LogInfo("Output path: " + m_output_path);
-    LogInfo("Configuration path: EquityCurveSignals\\Configuration\\");
-    LogInfo("Directory creation will be completed when standard includes are available");
+    LogInfo("Configuration path: " + config_path);
     
     return true;
+}
+
+//+------------------------------------------------------------------+
+//| Create directory with existence check and error handling         |
+//+------------------------------------------------------------------+
+bool CreateDirectoryWithCheck(string path)
+{
+    // Check if directory already exists
+    if(FileIsExist(path, FILE_COMMON))
+    {
+        LogInfo("Directory already exists: " + path);
+        return true;
+    }
+    
+    // Attempt to create the directory
+    if(FileCreateDirectory(path, FILE_COMMON))
+    {
+        LogInfo("Directory created successfully: " + path);
+        return true;
+    }
+    
+    // Directory creation failed
+    int error_code = GetLastError();
+    LogError("Failed to create directory: " + path + " (Error: " + IntegerToString(error_code) + ")");
+    return false;
 }
 
 //+------------------------------------------------------------------+
