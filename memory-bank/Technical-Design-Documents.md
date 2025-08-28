@@ -9,9 +9,11 @@ This document provides detailed technical design specifications for the Equity C
 ```
 [EquityCurveSignalEA.mq5]                 [LiveTradingEA.mq5]
     ↑          ↑          ↑                   ↑          ↑          ↑
-CDataManager  CSignalGenerator  CTradeManager  CEquityCurveReader  CEquityCurveAnalyzer  CBasketManager
+CEquityCurveController  CDataManager  CSignalGenerator  CEquityCurveReader  CEquityCurveAnalyzer  CBasketManager
     ↑          ↑          ↑                   ↑          ↑          ↑
-SuperSlopeDashboard Components              File I/O Operations  Risk Management
+CTradeManager  CPositionTracker  CEquityCurveWriter  CRiskManager
+    ↑
+SuperSlopeDashboard Components
 ```
 
 ## Epic 3: Equity Curve Signal EA Design
@@ -19,6 +21,8 @@ SuperSlopeDashboard Components              File I/O Operations  Risk Management
 ### Class Diagram
 ```
 EquityCurveSignalEA.mq5
+    ↑
+CEquityCurveController
     ↑
 CDataManager (from SuperSlopeDashboard)
     ↑
@@ -388,6 +392,66 @@ bool CRiskManager::CheckIndividualRisk(string symbol, double entry_price, double
 }
 ```
 
+## New Component: CEquityCurveController
+
+### Class Design
+
+#### Purpose
+Manage Equity Curve EA initialization, setup, and resource management including account validation, directory setup, and logging configuration.
+
+#### Class Definition
+```mql5
+class CEquityCurveController {
+private:
+    bool            m_initialized;      // Flag indicating if controller is initialized
+    string          m_log_path;         // Path for log files
+    string          m_output_path;      // Path for output files (CSV, etc.)
+    
+public:
+    //--- Constructor and destructor
+                     CEquityCurveController(void);
+                    ~CEquityCurveController(void);
+    
+    //--- Initialization and setup methods
+    bool              Initialize(void);
+    bool              ValidateAccountType(void);
+    bool              SetupDirectories(void);
+    bool              ConfigureLogging(void);
+    void              Cleanup(void);
+    
+    //--- Getter methods
+    bool              IsInitialized(void) const { return m_initialized; }
+    string            GetLogPath(void) const { return m_log_path; }
+    string            GetOutputPath(void) const { return m_output_path; }
+};
+```
+
+#### Account Validation Logic
+The ValidateAccountType() method implements strict account type restrictions:
+- **Allowed**: Strategy Tester (MQL_TESTER) and Demo accounts (ACCOUNT_TRADE_MODE_DEMO)
+- **Rejected**: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST)
+- **Security**: Provides clear error messages and comprehensive logging for audit trail
+- **Safety**: Prevents accidental execution on unauthorized account types
+
+#### Logging Framework
+The controller includes a comprehensive logging system with:
+- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing
+- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log)
+- **Initialization Logging**: LogInitializationParameters() method for recording startup configuration
+- **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
+- **Audit Trail**: Comprehensive logging for security and debugging purposes
+- **Future Ready**: Structure in place for full file-based logging when standard includes are available
+
+#### Directory Management System
+The controller manages a comprehensive directory structure:
+- **Base Path**: EquityCurveSignals\\
+- **Logs Directory**: EquityCurveSignals\\Logs\\ - for log files and audit trails
+- **Output Directory**: EquityCurveSignals\\Output\\ - for CSV files and trading data output
+- **Configuration Directory**: EquityCurveSignals\\Configuration\\ - for configuration files and settings
+- **Error Handling**: Comprehensive error checking and reporting for directory operations
+- **Integration**: Fully integrated with the logging framework for audit trail purposes
+- **Future Ready**: Structure prepared for full file operations when standard includes are available
+
 ## Data Structures and Enums
 
 ### Common Enumerations
@@ -545,6 +609,26 @@ void IntegratedOperation() {
                               SymbolInfoDouble(symbol, SYMBOL_ASK),
                               SymbolInfoDouble(symbol, SYMBOL_BID));
     }
+}
+
+// EA Initialization Pattern with CEquityCurveController
+int OnInit() {
+    // 1. Initialize controller (account validation, directories, logging)
+    if(!controller.Initialize()) {
+        return INIT_FAILED;
+    }
+    
+    // 2. Initialize other components
+    if(!data_manager.Initialize(7, 50, 500)) {
+        return INIT_FAILED;
+    }
+    
+    return INIT_SUCCEEDED;
+}
+
+void OnDeinit(const int reason) {
+    // Cleanup all resources
+    controller.Cleanup();
 }
 ```
 

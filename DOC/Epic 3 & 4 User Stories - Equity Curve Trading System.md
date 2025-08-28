@@ -14,11 +14,11 @@ Develop an Expert Advisor that generates trading signals based on the SuperSlope
 
 #### Acceptance Criteria:
 
-- [ ] EA initializes correctly on demo accounts and Strategy Tester
+- [x] EA initializes correctly on demo accounts and Strategy Tester
 - [ ] EA validates that it's not running on a live account (safety check)
 - [ ] EA creates necessary file directories for output
-- [ ] EA logs all initialization parameters for audit trail
-- [ ] EA implements proper cleanup on deinitialization
+- [x] EA logs all initialization parameters for audit trail
+- [x] EA implements proper cleanup on deinitialization
 
 #### Technical Tasks:
 
@@ -540,3 +540,9 @@ Basic Trade Monitoring EA
 8. Automated parameter optimization
 9. Integration with other trading platforms
 10. Advanced money management algorithms (Kelly Criterion, etc.)
+
+---
+## Notes and Items to review
+### End of Sprint 1
+- I could not find an actual directory setup on the test environment but think that this is because we will need to add in some includes or library code to do this at a later point in the project 
+- At some point I will need to check that I get an error when trying to run on a live account
