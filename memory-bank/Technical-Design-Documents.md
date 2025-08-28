@@ -449,10 +449,10 @@ The controller manages a comprehensive directory structure:
 - **Logs Directory**: EquityCurveSignals\\Logs\\ - for log files and audit trails
 - **Output Directory**: EquityCurveSignals\\Output\\ - for CSV files and trading data output
 - **Configuration Directory**: EquityCurveSignals\\Configuration\\ - for configuration files and settings
-- **Error Handling**: Comprehensive error checking and reporting for directory operations with detailed error codes
-- **Existence Checks**: Smart directory creation that checks if directories already exist before attempting creation
+- **Error Handling**: Comprehensive error checking and reporting with detailed error codes using GetLastError()
+- **Smart Creation**: Uses FolderCreate() which returns true if directory exists or is successfully created
 - **Integration**: Fully integrated with the logging framework for audit trail purposes
-- **Status**: ✅ IMPLEMENTED - Full directory creation with error handling
+- **Status**: ✅ IMPLEMENTED - Full directory creation with proper MQL5 API usage
 
 ## Sprint 2.1 Enhancements - Standard Includes Integration
 

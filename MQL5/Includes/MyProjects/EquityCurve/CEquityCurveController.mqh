@@ -8,7 +8,6 @@
 
 // Include necessary MQL5 standard headers
 #include <Trade/AccountInfo.mqh>
-#include <Files/File.mqh>
 
 //+------------------------------------------------------------------+
 //| Class for managing Equity Curve EA initialization and setup      |
@@ -171,16 +170,9 @@ bool CEquityCurveController::SetupDirectories(void)
 bool CreateDirectoryWithCheck(string path)
 {
     // Check if directory already exists
-    if(FileIsExist(path, FILE_COMMON))
+    if(FolderCreate(path, FILE_COMMON))
     {
-        LogInfo("Directory already exists: " + path);
-        return true;
-    }
-    
-    // Attempt to create the directory
-    if(FileCreateDirectory(path, FILE_COMMON))
-    {
-        LogInfo("Directory created successfully: " + path);
+        LogInfo("Directory already exists or created successfully: " + path);
         return true;
     }
     
