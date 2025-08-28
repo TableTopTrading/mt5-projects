@@ -133,6 +133,7 @@ public:
 - [x] Create directory management system
 
 ### Sprint 2: Enhanced Reliability & Audit (Medium Priority)
+[[US 3.1 - Sprint 2- Enhanced Reliability & Audit]]
 - [ ] Comprehensive error handling
 - [ ] Parameter validation and logging
 - [ ] Resource cleanup guarantees

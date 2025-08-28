@@ -7,6 +7,7 @@ Develop an Expert Advisor that generates trading signals based on the SuperSlope
 ---
 
 ### User Story 3.1: Core EA Framework Setup
+[[Sprint Planning - User Story 3.1 - Core EA Framework Setup]]
 
 **As a** trader  
 **I want** an EA framework that can run on demo accounts or in Strategy Tester  
