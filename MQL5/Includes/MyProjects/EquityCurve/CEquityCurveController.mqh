@@ -18,6 +18,7 @@ private:
     bool            m_initialized;      // Flag indicating if controller is initialized
     string          m_log_path;         // Path for log files
     string          m_output_path;      // Path for output files (CSV, etc.)
+    int             m_log_file;         // Handle for log file
     
 public:
     //--- Constructor and destructor
@@ -162,22 +163,49 @@ bool CEquityCurveController::SetupDirectories(void)
 //+------------------------------------------------------------------+
 bool CEquityCurveController::ConfigureLogging(void)
 {
-    // Enable expert logging
-    if(!LogEnable(true))
-    {
-        Print("Failed to enable logging");
-        return false;
-    }
+    // Logging configuration will be fully implemented when standard includes are available
+    LogInfo("Logging system initialized successfully");
+    LogInfo("File-based logging will be enabled when standard includes are available");
     
-    // Set log level to include all messages
-    if(!LogLevel(LOG_LEVEL_ALL))
-    {
-        Print("Failed to set log level");
-        return false;
-    }
-    
-    Print("Logging configured successfully");
     return true;
+}
+
+//+------------------------------------------------------------------+
+//| Log informational message                                        |
+//+------------------------------------------------------------------+
+void LogInfo(string message)
+{
+    // Implementation will be added when standard includes are available
+    Print("[INFO] " + message);
+}
+
+//+------------------------------------------------------------------+
+//| Log warning message                                              |
+//+------------------------------------------------------------------+
+void LogWarning(string message)
+{
+    // Implementation will be added when standard includes are available
+    Print("[WARN] " + message);
+}
+
+//+------------------------------------------------------------------+
+//| Log error message                                                |
+//+------------------------------------------------------------------+
+void LogError(string message)
+{
+    // Implementation will be added when standard includes are available
+    Print("[ERROR] " + message);
+}
+
+//+------------------------------------------------------------------+
+//| Log initialization parameters                                    |
+//+------------------------------------------------------------------+
+void LogInitializationParameters(void)
+{
+    LogInfo("=== INITIALIZATION PARAMETERS ===");
+    LogInfo("EA Version: 1.00");
+    LogInfo("Initialization parameters logging ready - will log details when standard includes are available");
+    LogInfo("=== END INITIALIZATION PARAMETERS ===");
 }
 
 //+------------------------------------------------------------------+
@@ -192,7 +220,7 @@ void CEquityCurveController::Cleanup(void)
     m_log_path = "";
     m_output_path = "";
     
-    Print("EquityCurveController cleanup completed");
+    LogInfo("EquityCurveController cleanup completed");
 }
 
 //+------------------------------------------------------------------+

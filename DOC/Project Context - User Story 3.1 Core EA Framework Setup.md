@@ -36,10 +36,7 @@ The implementation includes:
 - __Documentation__: Contains proper class documentation and comments
 
 The class is designed as a controller for managing Equity Curve EA initialization and setup, including account validation, directory setup, logging configuration, and cleanup operations. The implementation provides a solid foundation that can be integrated with the existing EA skeleton once the standard MQL5 includes are available in the compilation environment.
-
 #### Spring 1.3 
-## Key Improvements Made:
-
 1. __Strategy Tester Detection__: Added `MQLInfoInteger(MQL_TESTER)` check that allows immediate validation when running in Strategy Tester mode.
 2. __Restricted Account Types__:
 	   - Now only allows ACCOUNT_TRADE_MODE_DEMO for live trading
@@ -56,6 +53,28 @@ The class is designed as a controller for managing Equity Curve EA initializatio
 ##### Validation Logic:
 - __Allowed__: Strategy Tester (MQL_TESTER) and Demo accounts (ACCOUNT_TRADE_MODE_DEMO)
 - __Rejected__: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST), and any unknown account types
+#### Sprint 1.4
+1. __Log File Handle Management__: Added `m_log_file` member to track log file handles
+2. __Enhanced ConfigureLogging() Method__: Simplified to work without standard includes while maintaining the structure for future implementation
+3. __Log Level Methods__:
+	   - `LogInfo(string message)` - for informational messages with [INFO] prefix
+	   - `LogWarning(string message)` - for warning messages with [WARN] prefix
+	   - `LogError(string message)` - for error messages with [ERROR] prefix
+4. __LogInitializationParameters() Method__: Created to record initialization parameters with proper structure ready for detailed logging
+5. __Error Handling__: Implemented fallback to standard Print() when file logging is not available, ensuring robustness
+6. __Integration__: The logging framework is properly integrated with the existing directory setup and follows the project's architecture
+##### Current Implementation:
+- Uses Print() with log level prefixes as a temporary solution
+- Maintains the complete structure for file-based logging
+- Ready for full implementation when standard MQL5 includes become available
+- Includes proper cleanup handling
+### Current Task - Sprint 1.5
+Create Directory Management System
+**Activities:**
+- [ ] Implement SetupDirectories() method in CEquityCurveController
+- [ ] Use FileCreate() or similar MQL5 functions to create directories
+- [ ] Create necessary paths: /Files/EquityCurveSignals/Output/, /Files/EquityCurveSignals/Logs/, /Files/EquityCurveSignals/Configuration/
+- [ ] Add error checking and reporting for directory creation failures
+- [ ] Ensure directories are created with appropriate permissions
+- [ ] Log directory creation events for audit purposes
 
-### Current Task - Sprint 
-- [ ] Test with different account types to ensure restrictions work

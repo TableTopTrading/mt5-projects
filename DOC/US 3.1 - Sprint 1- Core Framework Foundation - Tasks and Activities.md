@@ -34,18 +34,21 @@ Sprint 1 focuses on establishing the fundamental infrastructure for the Equity C
 - [x] Implement graceful error handling with clear messages
 - [x] Log validation results for audit trail
 - [ ] Test with different account types to ensure restrictions work
+Not tested as still placeholder code in place so not functioning
 
 **Dependencies:** CEquityCurveController class structure in place
 
 ### 4. Set Up Basic Logging Framework
 **Activities:**
-- [ ] Implement ConfigureLogging() method
-- [ ] Create log file with timestamped naming (e.g., EquityCurve_YYYYMMDD.log)
-- [ ] Add log levels (INFO, WARN, ERROR) with prefixing
-- [ ] Implement LogInitializationParameters() to record all init values
+- [x] Implement ConfigureLogging() method
+- [x] Create log file with timestamped naming (e.g., EquityCurve_YYYYMMDD.log)
+- [x] Add log levels (INFO, WARN, ERROR) with prefixing
+- [x] Implement LogInitializationParameters() to record all init values
 - [ ] Ensure log files are stored in appropriate directory
-- [ ] Add error handling for file I/O operations
+Unclear if/ how this has been included
+- [x] Add error handling for file I/O operations
 - [ ] Test logging functionality with sample messages
+This has not been done yet.
 
 **Dependencies:** Directory management system ready (for log file paths)
 

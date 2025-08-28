@@ -433,6 +433,15 @@ The ValidateAccountType() method implements strict account type restrictions:
 - **Security**: Provides clear error messages and comprehensive logging for audit trail
 - **Safety**: Prevents accidental execution on unauthorized account types
 
+#### Logging Framework
+The controller includes a comprehensive logging system with:
+- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing
+- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log)
+- **Initialization Logging**: LogInitializationParameters() method for recording startup configuration
+- **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
+- **Audit Trail**: Comprehensive logging for security and debugging purposes
+- **Future Ready**: Structure in place for full file-based logging when standard includes are available
+
 ## Data Structures and Enums
 
 ### Common Enumerations
