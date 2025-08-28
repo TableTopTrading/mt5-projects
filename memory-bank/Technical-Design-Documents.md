@@ -9,9 +9,11 @@ This document provides detailed technical design specifications for the Equity C
 ```
 [EquityCurveSignalEA.mq5]                 [LiveTradingEA.mq5]
     ↑          ↑          ↑                   ↑          ↑          ↑
-CDataManager  CSignalGenerator  CTradeManager  CEquityCurveReader  CEquityCurveAnalyzer  CBasketManager
+CEquityCurveController  CDataManager  CSignalGenerator  CEquityCurveReader  CEquityCurveAnalyzer  CBasketManager
     ↑          ↑          ↑                   ↑          ↑          ↑
-SuperSlopeDashboard Components              File I/O Operations  Risk Management
+CTradeManager  CPositionTracker  CEquityCurveWriter  CRiskManager
+    ↑
+SuperSlopeDashboard Components
 ```
 
 ## Epic 3: Equity Curve Signal EA Design
@@ -19,6 +21,8 @@ SuperSlopeDashboard Components              File I/O Operations  Risk Management
 ### Class Diagram
 ```
 EquityCurveSignalEA.mq5
+    ↑
+CEquityCurveController
     ↑
 CDataManager (from SuperSlopeDashboard)
     ↑
@@ -386,6 +390,40 @@ bool CRiskManager::CheckIndividualRisk(string symbol, double entry_price, double
     
     return false;
 }
+```
+
+## New Component: CEquityCurveController
+
+### Class Design
+
+#### Purpose
+Manage Equity Curve EA initialization, setup, and resource management including account validation, directory setup, and logging configuration.
+
+#### Class Definition
+```mql5
+class CEquityCurveController {
+private:
+    bool            m_initialized;      // Flag indicating if controller is initialized
+    string          m_log_path;         // Path for log files
+    string          m_output_path;      // Path for output files (CSV, etc.)
+    
+public:
+    //--- Constructor and destructor
+                     CEquityCurveController(void);
+                    ~CEquityCurveController(void);
+    
+    //--- Initialization and setup methods
+    bool              Initialize(void);
+    bool              ValidateAccountType(void);
+    bool              SetupDirectories(void);
+    bool              ConfigureLogging(void);
+    void              Cleanup(void);
+    
+    //--- Getter methods
+    bool              IsInitialized(void) const { return m_initialized; }
+    string            GetLogPath(void) const { return m_log_path; }
+    string            GetOutputPath(void) const { return m_output_path; }
+};
 ```
 
 ## Data Structures and Enums
