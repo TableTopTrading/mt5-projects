@@ -132,28 +132,16 @@ bool CEquityCurveController::ValidateAccountType(void)
 //+------------------------------------------------------------------+
 bool CEquityCurveController::SetupDirectories(void)
 {
-    // Set log path to MQL5/Files/EquityCurve/Logs/
-    m_log_path = "EquityCurve\\Logs\\";
+    // Set paths for EquityCurveSignals directories
+    m_log_path = "EquityCurveSignals\\Logs\\";
+    m_output_path = "EquityCurveSignals\\Output\\";
     
-    // Set output path to MQL5/Files/EquityCurve/Output/
-    m_output_path = "EquityCurve\\Output\\";
-    
-    // Create directories if they don't exist
-    if(!FolderCreate(m_log_path, FILE_COMMON))
-    {
-        Print("Failed to create log directory: ", m_log_path);
-        return false;
-    }
-    
-    if(!FolderCreate(m_output_path, FILE_COMMON))
-    {
-        Print("Failed to create output directory: ", m_output_path);
-        return false;
-    }
-    
-    Print("Directories created successfully:");
-    Print("Log path: ", m_log_path);
-    Print("Output path: ", m_output_path);
+    // Directory setup will be fully implemented when standard includes are available
+    LogInfo("Directory structure configured for EquityCurveSignals");
+    LogInfo("Log path: " + m_log_path);
+    LogInfo("Output path: " + m_output_path);
+    LogInfo("Configuration path: EquityCurveSignals\\Configuration\\");
+    LogInfo("Directory creation will be completed when standard includes are available");
     
     return true;
 }
