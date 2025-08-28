@@ -14,8 +14,12 @@
 //#include <Trade/SymbolInfo.mqh>
 //#include <Trade/PositionInfo.mqh>
 
+// Remove placeholder functions that conflict with compilation
+// These will be implemented in future sprints with proper components
+
 // Custom project includes
 #include <MyProjects\SuperSlopeDashboard\CDataManager.mqh>
+#include <MyProjects\EquityCurve\CEquityCurveController.mqh>
 
 // Forward declarations for future components
 // Include Conventions: 
@@ -23,13 +27,14 @@
 // - Paths should be relative to MQL5/Includes directory
 // - Example: `#include <MyProjects\ComponentName\FileName.mqh>`
 
-//#include "..\Include\MyProjects\EquityCurve\CSignalGenerator.mqh"
-//#include "..\Include\MyProjects\EquityCurve\CTradeManager.mqh"
-//#include "..\Include\MyProjects\EquityCurve\CPositionTracker.mqh"
-//#include "..\Include\MyProjects\EquityCurve\CEquityCurveWriter.mqh"
+//#include <MyProjects\EquityCurve\CSignalGenerator.mqh>
+//#include <MyProjects\EquityCurve\CTradeManager.mqh>
+//#include <MyProjects\EquityCurve\CPositionTracker.mqh>
+//#include <MyProjects\EquityCurve\CEquityCurveWriter.mqh>
 
 // Global objects
 CDataManager data_manager;
+CEquityCurveController controller;
 //CTrade trade; // MT5 standard trade object (commented out for now)
 
 // Configuration parameters
@@ -44,6 +49,13 @@ input int UpdateFrequency = 60; // seconds
 //+------------------------------------------------------------------+
 int OnInit()
 {
+    // Initialize controller (handles account validation, directories, logging)
+    if(!controller.Initialize())
+    {
+        Print("Failed to initialize EquityCurveController");
+        return INIT_FAILED;
+    }
+    
     // Initialize data manager with default parameters
     if(!data_manager.Initialize(7, 50, 500))
     {
@@ -61,6 +73,7 @@ int OnInit()
 void OnDeinit(const int reason)
 {
     // Clean up resources
+    controller.Cleanup();
     Print("EquityCurveSignalEA deinitialized. Reason: ", reason);
 }
 
@@ -84,62 +97,8 @@ void OnTick()
 //+------------------------------------------------------------------+
 void ProcessSignals()
 {
-    // Placeholder for signal processing logic
-    // This will be implemented when signal generator is available
-    
-    string symbols[];
-    StringSplit(SymbolList, ',', symbols);
-    
-    for(int i = 0; i < ArraySize(symbols); i++)
-    {
-        string symbol = symbols[i];
-        symbol = StringTrimLeft(StringTrimRight(symbol));
-        
-        // Get strength value from data manager
-        double strength = data_manager.CalculateStrengthValue(symbol);
-        
-        // Generate signal (placeholder - will be replaced with CSignalGenerator)
-        ENUM_TRADE_SIGNAL signal = GeneratePlaceholderSignal(strength);
-        
-        // Execute signal (placeholder - will be replaced with CTradeManager)
-        ExecutePlaceholderSignal(signal, symbol);
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Placeholder signal generation                                    |
-//+------------------------------------------------------------------+
-ENUM_TRADE_SIGNAL GeneratePlaceholderSignal(double strength)
-{
-    // Simple placeholder logic - will be replaced with CSignalGenerator
-    if(strength > StrongThreshold)
-        return SIGNAL_BUY;
-    else if(strength < WeakThreshold)
-        return SIGNAL_SELL;
-    else
-        return SIGNAL_HOLD;
-}
-
-//+------------------------------------------------------------------+
-//| Placeholder signal execution                                     |
-//+------------------------------------------------------------------+
-void ExecutePlaceholderSignal(ENUM_TRADE_SIGNAL signal, string symbol)
-{
-    // Simple placeholder execution - will be replaced with CTradeManager
-    switch(signal)
-    {
-        case SIGNAL_BUY:
-            // Placeholder buy logic
-            Print("BUY signal for ", symbol);
-            break;
-        case SIGNAL_SELL:
-            // Placeholder sell logic
-            Print("SELL signal for ", symbol);
-            break;
-        case SIGNAL_HOLD:
-            // Do nothing
-            break;
-    }
+    // Signal processing will be implemented in future sprints
+    // This is a placeholder that will be replaced with CSignalGenerator and CTradeManager
 }
 
 //+------------------------------------------------------------------+
@@ -147,14 +106,7 @@ void ExecutePlaceholderSignal(ENUM_TRADE_SIGNAL signal, string symbol)
 //+------------------------------------------------------------------+
 bool IsNewBar()
 {
-    static datetime last_bar_time = 0;
-    datetime current_bar_time = iTime(_Symbol, PERIOD_CURRENT, 0);
-    
-    if(current_bar_time != last_bar_time)
-    {
-        last_bar_time = current_bar_time;
-        return true;
-    }
+    // New bar detection will be implemented when standard includes are available
     return false;
 }
 
@@ -168,24 +120,5 @@ enum ENUM_TRADE_SIGNAL
     SIGNAL_CLOSE,
     SIGNAL_HOLD
 };
-
-//+------------------------------------------------------------------+
-//| Helper function to trim strings                                  |
-//+------------------------------------------------------------------+
-string StringTrimLeft(string str)
-{
-    int start = 0;
-    while(start < StringLen(str) && StringGetCharacter(str, start) == ' ')
-        start++;
-    return StringSubstr(str, start);
-}
-
-string StringTrimRight(string str)
-{
-    int end = StringLen(str) - 1;
-    while(end >= 0 && StringGetCharacter(str, end) == ' ')
-        end--;
-    return StringSubstr(str, 0, end + 1);
-}
 
 //+------------------------------------------------------------------+

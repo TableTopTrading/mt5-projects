@@ -1,19 +1,5 @@
 ## **Objective:** To setup the core EA Framework, for a MT5 EA 
 
-### **Roles:**
-*   **LLM (Developer):** Writes code for specified components based on detailed instructions and context.
-*   **Human (Tester/Manager):** Provides context, defines tasks, runs tests, provides feedback, and conducts final acceptance testing.
-
-### **Development Rules**:
-- Consult memory bank when wider context is needed.
-- Work on one file at a time.  If changes are needed to other files, stop and request confirmation first.
-- Always review your plan to ensure that you are considering any MQL5 constraints.
-- Symbolic links are used to share files between dev and test.
-- Include Convention: 
-    - Use angle brackets `< >` for all project includes
-    - Paths should be relative to MQL5/Includes directory
-    - Example: `#include <MyProjects\ComponentName\FileName.mqh>`
-
 ### Completed
 #### Sprint 1.1
 - __Standard MQL5 EA properties__ - Copyright, version, and strict mode directives
@@ -34,9 +20,7 @@ The implementation includes:
 - __MQL5 Compliance__: The class follows MQL5 conventions with proper access modifiers and method signatures
 - __Error Handling__: Includes comprehensive error handling with appropriate return types
 - __Documentation__: Contains proper class documentation and comments
-
-The class is designed as a controller for managing Equity Curve EA initialization and setup, including account validation, directory setup, logging configuration, and cleanup operations. The implementation provides a solid foundation that can be integrated with the existing EA skeleton once the standard MQL5 includes are available in the compilation environment.
-#### Spring 1.3 
+#### Sprint 1.3 
 1. __Strategy Tester Detection__: Added `MQLInfoInteger(MQL_TESTER)` check that allows immediate validation when running in Strategy Tester mode.
 2. __Restricted Account Types__:
 	   - Now only allows ACCOUNT_TRADE_MODE_DEMO for live trading
@@ -74,7 +58,7 @@ The class is designed as a controller for managing Equity Curve EA initializatio
 	   - Maintains consistent audit trail format
 3. __Comprehensive Structure__: The implementation maintains the complete directory structure ready for full implementation when standard MQL5 includes become available
 4. __Error Handling Ready__: The framework is in place for robust error checking and reporting once file operations are enabled
-### Sprint 1.6: Integration Phase
+#### Sprint 1.6: Integration Phase
 1. __Added Controller Include__: Added `#include <MyProjects\EquityCurve\CEquityCurveController.mqh>` using proper angle bracket syntax
 2. __Global Controller Instance__: Created `CEquityCurveController controller;` as a global object
 3. __Updated OnInit()__:
@@ -87,15 +71,13 @@ The class is designed as a controller for managing Equity Curve EA initializatio
 	   - Simplified ProcessSignals() to a basic placeholder
 	   - Simplified IsNewBar() to avoid compilation issues with missing includes
 6. __Maintained Structure__: Kept the overall EA structure intact while removing compilation blockers
-#### Current State:
-
+### Current State:
 - The EA should now compile without the previous placeholder code conflicts
 - The CEquityCurveController is properly integrated and will handle:
   - Account type validation (allows Strategy Tester/demo, rejects real accounts)
   - Directory structure setup (EquityCurveSignals/Logs/, /Output/, /Configuration/)
   - Logging system initialization
   - Proper cleanup on deinitialization
-
 ### Testing:
 
 - __Strategy Tester__: Should initialize successfully with proper logging
@@ -106,4 +88,3 @@ The class is designed as a controller for managing Equity Curve EA initializatio
 
 All tests passed.
 
-### Current Task - Sprint 1

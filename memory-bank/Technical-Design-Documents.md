@@ -442,6 +442,16 @@ The controller includes a comprehensive logging system with:
 - **Audit Trail**: Comprehensive logging for security and debugging purposes
 - **Future Ready**: Structure in place for full file-based logging when standard includes are available
 
+#### Directory Management System
+The controller manages a comprehensive directory structure:
+- **Base Path**: EquityCurveSignals\\
+- **Logs Directory**: EquityCurveSignals\\Logs\\ - for log files and audit trails
+- **Output Directory**: EquityCurveSignals\\Output\\ - for CSV files and trading data output
+- **Configuration Directory**: EquityCurveSignals\\Configuration\\ - for configuration files and settings
+- **Error Handling**: Comprehensive error checking and reporting for directory operations
+- **Integration**: Fully integrated with the logging framework for audit trail purposes
+- **Future Ready**: Structure prepared for full file operations when standard includes are available
+
 ## Data Structures and Enums
 
 ### Common Enumerations
@@ -599,6 +609,26 @@ void IntegratedOperation() {
                               SymbolInfoDouble(symbol, SYMBOL_ASK),
                               SymbolInfoDouble(symbol, SYMBOL_BID));
     }
+}
+
+// EA Initialization Pattern with CEquityCurveController
+int OnInit() {
+    // 1. Initialize controller (account validation, directories, logging)
+    if(!controller.Initialize()) {
+        return INIT_FAILED;
+    }
+    
+    // 2. Initialize other components
+    if(!data_manager.Initialize(7, 50, 500)) {
+        return INIT_FAILED;
+    }
+    
+    return INIT_SUCCEEDED;
+}
+
+void OnDeinit(const int reason) {
+    // Cleanup all resources
+    controller.Cleanup();
 }
 ```
 
