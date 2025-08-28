@@ -432,6 +432,7 @@ The ValidateAccountType() method implements strict account type restrictions:
 - **Rejected**: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST)
 - **Security**: Provides clear error messages and comprehensive logging for audit trail
 - **Safety**: Prevents accidental execution on unauthorized account types
+- **Status**: ✅ IMPLEMENTED - Standard includes integrated for AccountInfo functionality
 
 #### Logging Framework
 The controller includes a comprehensive logging system with:
@@ -440,7 +441,7 @@ The controller includes a comprehensive logging system with:
 - **Initialization Logging**: LogInitializationParameters() method for recording startup configuration
 - **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
 - **Audit Trail**: Comprehensive logging for security and debugging purposes
-- **Future Ready**: Structure in place for full file-based logging when standard includes are available
+- **Status**: ✅ STANDARD INCLUDES INTEGRATED - Ready for full file operations implementation
 
 #### Directory Management System
 The controller manages a comprehensive directory structure:
@@ -450,7 +451,68 @@ The controller manages a comprehensive directory structure:
 - **Configuration Directory**: EquityCurveSignals\\Configuration\\ - for configuration files and settings
 - **Error Handling**: Comprehensive error checking and reporting for directory operations
 - **Integration**: Fully integrated with the logging framework for audit trail purposes
-- **Future Ready**: Structure prepared for full file operations when standard includes are available
+- **Status**: ✅ STANDARD INCLUDES INTEGRATED - Ready for full file operations implementation
+
+## Sprint 2.1 Enhancements - Standard Includes Integration
+
+### Completed Enhancements
+
+#### 1. Standard Library Integration
+- ✅ **Trade.mqh**: Integrated for trade execution functionality
+- ✅ **AccountInfo.mqh**: Integrated for account validation and information retrieval
+- ✅ **SymbolInfo.mqh**: Integrated for symbol information and market data access
+- ✅ **PositionInfo.mqh**: Integrated for position management and tracking
+
+#### 2. Compilation Improvements
+- ✅ **IsNewBar() Implementation**: Added proper new bar detection using iTime function
+- ✅ **AccountInfoInteger Integration**: Now properly resolves compilation for account validation
+- ✅ **Clean Compilation**: All standard includes uncommented and functional
+
+#### 3. Architecture Readiness
+- **Foundation for File Operations**: Standard includes provide base for future file-based logging
+- **Trade Execution Ready**: Trade.mqh enables future CTradeManager implementation
+- **Position Tracking Ready**: PositionInfo.mqh enables future CPositionTracker implementation
+- **Market Data Access**: SymbolInfo.mqh enables comprehensive market data operations
+
+### Technical Implementation Details
+
+#### Updated Include Structure
+```mql5
+// Standard MT5 includes (Sprint 2.1 - Integrated)
+#include <Trade/Trade.mqh>
+#include <Trade/AccountInfo.mqh>
+#include <Trade/SymbolInfo.mqh>
+#include <Trade/PositionInfo.mqh>
+```
+
+#### Enhanced IsNewBar() Implementation
+```mql5
+bool IsNewBar()
+{
+    static datetime last_bar_time = 0;
+    datetime current_bar_time = iTime(_Symbol, PERIOD_CURRENT, 0);
+    
+    if(current_bar_time != last_bar_time)
+    {
+        last_bar_time = current_bar_time;
+        return true;
+    }
+    
+    return false;
+}
+```
+
+#### Account Validation Now Fully Functional
+The ValidateAccountType() method now has full access to:
+- `AccountInfoInteger(ACCOUNT_TRADE_MODE)` - Account type detection
+- `MQLInfoInteger(MQL_TESTER)` - Strategy tester detection
+- Complete error handling and logging capabilities
+
+### Next Steps Enabled
+- **File Operations**: Ready for implementation of file-based logging with Files/File.mqh
+- **Trade Execution**: Foundation laid for CTradeManager with Trade.mqh
+- **Position Management**: Ready for CPositionTracker with PositionInfo.mqh
+- **Market Data**: Comprehensive data access enabled with SymbolInfo.mqh
 
 ## Data Structures and Enums
 

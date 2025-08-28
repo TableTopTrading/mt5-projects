@@ -8,11 +8,11 @@
 #property version   "1.00"
 #property strict
 
-// Standard MT5 includes (commented out for compilation - will be uncommented when needed)
-//#include <Trade/Trade.mqh>
-//#include <Trade/AccountInfo.mqh>
-//#include <Trade/SymbolInfo.mqh>
-//#include <Trade/PositionInfo.mqh>
+// Standard MT5 includes
+#include <Trade/Trade.mqh>
+#include <Trade/AccountInfo.mqh>
+#include <Trade/SymbolInfo.mqh>
+#include <Trade/PositionInfo.mqh>
 
 // Remove placeholder functions that conflict with compilation
 // These will be implemented in future sprints with proper components
@@ -106,7 +106,15 @@ void ProcessSignals()
 //+------------------------------------------------------------------+
 bool IsNewBar()
 {
-    // New bar detection will be implemented when standard includes are available
+    static datetime last_bar_time = 0;
+    datetime current_bar_time = iTime(_Symbol, PERIOD_CURRENT, 0);
+    
+    if(current_bar_time != last_bar_time)
+    {
+        last_bar_time = current_bar_time;
+        return true;
+    }
+    
     return false;
 }
 

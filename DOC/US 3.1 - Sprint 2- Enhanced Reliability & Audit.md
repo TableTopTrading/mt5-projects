@@ -8,13 +8,13 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 ### Sprint 2.1: Standard Includes Integration and Compilation Fix
 - __Objective:__ Integrate MQL5 standard libraries and ensure clean compilation 
 - __Activities:__
-- [ ] Uncomment standard includes in EquityCurveSignalEA.mq5:
+- [x] Uncomment standard includes in EquityCurveSignalEA.mq5:
   - #include <Trade/Trade.mqh>
   - #include <Trade/AccountInfo.mqh>
   - #include <Trade/SymbolInfo.mqh>
   - #include <Trade/PositionInfo.mqh>
-- [ ] Update CEquityCurveController.mqh to include necessary standard headers
-- [ ] Remove any compilation errors caused by placeholder code
+- [x] Update CEquityCurveController.mqh to include necessary standard headers
+- [x] Remove any compilation errors caused by placeholder code
 - [ ] Verify all components compile without warnings
 - [ ] Test basic functionality in Strategy Tester
 

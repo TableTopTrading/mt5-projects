@@ -6,8 +6,8 @@
 #ifndef CEQUITYCURVECONTROLLER_MQH
 #define CEQUITYCURVECONTROLLER_MQH
 
-// Include necessary MQL5 standard headers (commented out for compilation - will be uncommented when needed)
-//#include <Trade/AccountInfo.mqh>
+// Include necessary MQL5 standard headers
+#include <Trade/AccountInfo.mqh>
 
 //+------------------------------------------------------------------+
 //| Class for managing Equity Curve EA initialization and setup      |
