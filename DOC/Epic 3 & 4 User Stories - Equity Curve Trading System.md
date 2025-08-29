@@ -547,3 +547,10 @@ Basic Trade Monitoring EA
 ### End of Sprint 1
 - Directories are setup in the common folders rather than specific terminal instance folders.  This needs to be noted in User Guide
 - At some point I will need to check that I get an error when trying to run on a live account
+### End of Sprint 2
+- Error handling.  I chose to direct DS to use a lightweight method for beta, rather than try a complex mechanism.  This means I may need to do another pass of error handling (as it is inline).
+	-  Changes from Original Plan:
+		- __No Centralized Error Class__: For beta, we'll avoid creating a complex error handling system. Instead, we'll use inline error checks with `GetLastError()`
+		- __No Custom Error Codes__: We'll rely on standard MQL5 error codes rather than defining custom ones, keeping it simple
+		- __Focus on Practicality__: Prioritize error handling that actually helps with debugging and recovery during testing
+		- __Minimal Impact__: Changes will be incremental and focused on existing code patterns

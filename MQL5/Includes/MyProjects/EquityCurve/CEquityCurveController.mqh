@@ -15,6 +15,118 @@
 // Project includes
 // #include <Files/File.mqh>  // Not needed - using MQL5 built-in functions
 
+// Error handling utilities
+#define ERROR_SUCCESS 0
+#define ERROR_FILE_OPERATION 5001
+#define ERROR_DIRECTORY_CREATION 5002
+#define ERROR_INVALID_PARAMETER 5003
+#define ERROR_INITIALIZATION_FAILED 5004
+
+// Error description helper function
+string GetErrorDescription(int error_code)
+{
+    switch(error_code)
+    {
+        case 0: return "No error";
+        case 1: return "No error returned, but result is unknown";
+        case 2: return "Common error";
+        case 3: return "Invalid trade parameters";
+        case 4: return "Trade server is busy";
+        case 5: return "Old version of the client terminal";
+        case 6: return "No connection with trade server";
+        case 7: return "Not enough rights";
+        case 8: return "Too frequent requests";
+        case 9: return "Malfunctional trade operation";
+        case 64: return "Account disabled";
+        case 65: return "Invalid account";
+        case 128: return "Trade timeout";
+        case 129: return "Invalid price";
+        case 130: return "Invalid stops";
+        case 131: return "Invalid trade volume";
+        case 132: return "Market is closed";
+        case 133: return "Trade is disabled";
+        case 134: return "Not enough money";
+        case 135: return "Price changed";
+        case 136: return "Off quotes";
+        case 137: return "Broker is busy";
+        case 138: return "Requote";
+        case 139: return "Order is locked";
+        case 140: return "Long positions only allowed";
+        case 141: return "Too many requests";
+        case 145: return "Modification denied because order is too close to market";
+        case 146: return "Trade context is busy";
+        case 147: return "Expirations are denied by broker";
+        case 148: return "Too many open and pending orders";
+        case 4000: return "No error";
+        case 4001: return "Wrong function pointer";
+        case 4002: return "Array index is out of range";
+        case 4003: return "No memory for function call stack";
+        case 4004: return "Recursive stack overflow";
+        case 4005: return "Not enough stack for parameter";
+        case 4006: return "Not enough memory for parameter string";
+        case 4007: return "Not enough memory for temp string";
+        case 4008: return "Not initialized string";
+        case 4009: return "Not initialized string in array";
+        case 4010: return "No memory for array string";
+        case 4011: return "Too long string";
+        case 4012: return "Remainder from zero divide";
+        case 4013: return "Zero divide";
+        case 4014: return "Unknown command";
+        case 4015: return "Wrong jump";
+        case 4016: return "Not initialized array";
+        case 4017: return "DLL calls are not allowed";
+        case 4018: return "Cannot load library";
+        case 4019: return "Cannot call function";
+        case 4020: return "Expert function calls are not allowed";
+        case 4021: return "Not enough memory for temp string returned from function";
+        case 4022: return "System is busy";
+        case 4050: return "Invalid function parameters count";
+        case 4051: return "Invalid function parameter value";
+        case 4052: return "String function internal error";
+        case 4053: return "Some array error";
+        case 4054: return "Incorrect series array using";
+        case 4055: return "Custom indicator error";
+        case 4056: return "Arrays are incompatible";
+        case 4057: return "Global variables processing error";
+        case 4058: return "Global variable not found";
+        case 4059: return "Function is not allowed in testing mode";
+        case 4060: return "Function is not confirmed";
+        case 4061: return "Send mail error";
+        case 4062: return "String parameter expected";
+        case 4063: return "Integer parameter expected";
+        case 4064: return "Double parameter expected";
+        case 4065: return "Array as parameter expected";
+        case 4066: return "Requested history data is in updating state";
+        case 4067: return "Some error in trading function";
+        case 4099: return "End of file";
+        case 4100: return "Some file error";
+        case 4101: return "Wrong file name";
+        case 4102: return "Too many opened files";
+        case 4103: return "Cannot open file";
+        case 4104: return "Incompatible access to a file";
+        case 4105: return "No order selected";
+        case 4106: return "Unknown symbol";
+        case 4107: return "Invalid price parameter";
+        case 4108: return "Invalid ticket";
+        case 4109: return "Trade is not allowed";
+        case 4110: return "Longs are not allowed";
+        case 4111: return "Shorts are not allowed";
+        case 4200: return "Object already exists";
+        case 4201: return "Unknown object property";
+        case 4202: return "Object does not exist";
+        case 4203: return "Unknown object type";
+        case 4204: return "No object name";
+        case 4205: return "Object coordinates error";
+        case 4206: return "No specified subwindow";
+        case 4207: return "Some error in object function";
+        case 5001: return "File operation error";
+        case 5002: return "Directory creation error";
+        case 5003: return "Invalid parameter";
+        case 5004: return "Initialization failed";
+        default: return "Unknown error code: " + IntegerToString(error_code);
+    }
+}
+
 class CEquityCurveController
 {
 private:
@@ -190,6 +302,13 @@ bool CEquityCurveController::SetupDirectories(void)
 //+------------------------------------------------------------------+
 bool CEquityCurveController::CreateDirectoryWithCheck(string path)
 {
+    // Parameter validation
+    if(path == NULL || StringLen(path) == 0)
+    {
+        LogError("Invalid directory path parameter: path cannot be empty or NULL");
+        return false;
+    }
+    
     // Check if directory already exists
     if(FolderCreate(path, FILE_COMMON))
     {
@@ -199,7 +318,7 @@ bool CEquityCurveController::CreateDirectoryWithCheck(string path)
     
     // Directory creation failed
     int error_code = GetLastError();
-    LogError("Failed to create directory: " + path + " (Error: " + IntegerToString(error_code) + ")");
+    LogError("Failed to create directory: " + path + " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
     return false;
 }
 
@@ -220,7 +339,7 @@ bool CEquityCurveController::ConfigureLogging(void)
     if(m_log_file_handle == INVALID_HANDLE)
     {
         int error_code = GetLastError();
-        Print("[ERROR] Failed to open log file: " + m_current_log_file + " (Error: " + IntegerToString(error_code) + ")");
+        Print("[ERROR] Failed to open log file: " + m_current_log_file + " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
         return false;
     }
     
@@ -235,7 +354,7 @@ bool CEquityCurveController::ConfigureLogging(void)
     if(FileWrite(m_log_file_handle, header) <= 0)
     {
         int error_code = GetLastError();
-        Print("[ERROR] Failed to write log header (Error: " + IntegerToString(error_code) + ")");
+        Print("[ERROR] Failed to write log header (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
         FileClose(m_log_file_handle);
         m_log_file_handle = INVALID_HANDLE;
         return false;
@@ -281,7 +400,7 @@ bool CEquityCurveController::CheckLogRotation(void)
         else
         {
             int error_code = GetLastError();
-            LogError("Failed to rotate log file (Error: " + IntegerToString(error_code) + ")");
+            LogError("Failed to rotate log file (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
         }
         
         // Reconfigure logging to create new file
@@ -296,6 +415,13 @@ bool CEquityCurveController::CheckLogRotation(void)
 //+------------------------------------------------------------------+
 void CEquityCurveController::LogInfo(string message)
 {
+    // Parameter validation
+    if(message == NULL || StringLen(message) == 0)
+    {
+        Print("[WARN] Attempted to log empty or NULL info message");
+        return;
+    }
+    
     string timestamp = TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS);
     string log_entry = "[" + timestamp + "] [INFO] " + message;
     
@@ -308,7 +434,8 @@ void CEquityCurveController::LogInfo(string message)
         if(FileWrite(m_log_file_handle, log_entry) <= 0)
         {
             // Fallback to Print if file writing fails
-            Print("[FILE_ERROR] Failed to write log entry: " + log_entry);
+            int error_code = GetLastError();
+            Print("[FILE_ERROR] Failed to write log entry (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + "): " + log_entry);
         }
     }
     else
@@ -323,6 +450,13 @@ void CEquityCurveController::LogInfo(string message)
 //+------------------------------------------------------------------+
 void CEquityCurveController::LogWarning(string message)
 {
+    // Parameter validation
+    if(message == NULL || StringLen(message) == 0)
+    {
+        Print("[WARN] Attempted to log empty or NULL warning message");
+        return;
+    }
+    
     string timestamp = TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS);
     string log_entry = "[" + timestamp + "] [WARN] " + message;
     
@@ -335,7 +469,8 @@ void CEquityCurveController::LogWarning(string message)
         if(FileWrite(m_log_file_handle, log_entry) <= 0)
         {
             // Fallback to Print if file writing fails
-            Print("[FILE_ERROR] Failed to write log entry: " + log_entry);
+            int error_code = GetLastError();
+            Print("[FILE_ERROR] Failed to write log entry (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + "): " + log_entry);
         }
     }
     else
@@ -350,6 +485,13 @@ void CEquityCurveController::LogWarning(string message)
 //+------------------------------------------------------------------+
 void CEquityCurveController::LogError(string message)
 {
+    // Parameter validation
+    if(message == NULL || StringLen(message) == 0)
+    {
+        Print("[WARN] Attempted to log empty or NULL error message");
+        return;
+    }
+    
     string timestamp = TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS);
     string log_entry = "[" + timestamp + "] [ERROR] " + message;
     
@@ -362,7 +504,8 @@ void CEquityCurveController::LogError(string message)
         if(FileWrite(m_log_file_handle, log_entry) <= 0)
         {
             // Fallback to Print if file writing fails
-            Print("[FILE_ERROR] Failed to write log entry: " + log_entry);
+            int error_code = GetLastError();
+            Print("[FILE_ERROR] Failed to write log entry (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + "): " + log_entry);
         }
     }
     else
