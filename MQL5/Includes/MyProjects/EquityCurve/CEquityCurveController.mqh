@@ -537,34 +537,36 @@ void CEquityCurveController::LogInitializationParameters(string symbol_list, dou
                                                         double weak_threshold, double position_size, 
                                                         int update_frequency)
 {
-    LogInfo("=== INITIALIZATION PARAMETERS ===");
-    LogInfo("EA Version: 1.00");
-    LogInfo("Account: " + AccountInfoString(ACCOUNT_NAME));
-    LogInfo("Server: " + AccountInfoString(ACCOUNT_SERVER));
-    LogInfo("Account Type: " + IntegerToString(AccountInfoInteger(ACCOUNT_TRADE_MODE)));
-    LogInfo("Balance: " + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2));
-    LogInfo("Equity: " + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY), 2));
+    // Use direct Print statements to avoid circular dependency with logging methods
+    // that might call ConfigureLogging() again through CheckLogRotation()
+    Print("=== INITIALIZATION PARAMETERS ===");
+    Print("EA Version: 1.00");
+    Print("Account: " + AccountInfoString(ACCOUNT_NAME));
+    Print("Server: " + AccountInfoString(ACCOUNT_SERVER));
+    Print("Account Type: " + IntegerToString(AccountInfoInteger(ACCOUNT_TRADE_MODE)));
+    Print("Balance: " + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2));
+    Print("Equity: " + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY), 2));
     
     // Log EA input parameters
-    LogInfo("SymbolList: " + symbol_list);
-    LogInfo("StrongThreshold: " + DoubleToString(strong_threshold, 2));
-    LogInfo("WeakThreshold: " + DoubleToString(weak_threshold, 2));
-    LogInfo("PositionSize: " + DoubleToString(position_size, 2));
-    LogInfo("UpdateFrequency: " + IntegerToString(update_frequency) + " seconds");
+    Print("SymbolList: " + symbol_list);
+    Print("StrongThreshold: " + DoubleToString(strong_threshold, 2));
+    Print("WeakThreshold: " + DoubleToString(weak_threshold, 2));
+    Print("PositionSize: " + DoubleToString(position_size, 2));
+    Print("UpdateFrequency: " + IntegerToString(update_frequency) + " seconds");
     
     // Log system configuration
-    LogInfo("Log Path: " + m_log_path);
-    LogInfo("Output Path: " + m_output_path);
-    LogInfo("Config Path: " + m_config_path);
-    LogInfo("Max Log Size: " + IntegerToString(m_max_log_size / (1024 * 1024)) + "MB");
+    Print("Log Path: " + m_log_path);
+    Print("Output Path: " + m_output_path);
+    Print("Config Path: " + m_config_path);
+    Print("Max Log Size: " + IntegerToString(m_max_log_size / (1024 * 1024)) + "MB");
     
     // Log validation status
-    LogInfo("Parameter Validation: PASSED");
-    LogInfo("Account Validation: " + (ValidateAccountType() ? "PASSED" : "FAILED"));
-    LogInfo("Directory Setup: " + (SetupDirectories() ? "COMPLETED" : "FAILED"));
-    LogInfo("Logging Configuration: " + (ConfigureLogging() ? "ACTIVE" : "INACTIVE"));
+    Print("Parameter Validation: PASSED");
+    Print("Account Validation: " + (ValidateAccountType() ? "PASSED" : "FAILED"));
+    Print("Directory Setup: " + (SetupDirectories() ? "COMPLETED" : "FAILED"));
+    Print("Logging Configuration: " + (m_log_file_handle != INVALID_HANDLE ? "ACTIVE" : "INACTIVE"));
     
-    LogInfo("=== END INITIALIZATION PARAMETERS ===");
+    Print("=== END INITIALIZATION PARAMETERS ===");
 }
 
 //+------------------------------------------------------------------+

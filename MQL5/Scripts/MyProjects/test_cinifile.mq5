@@ -2,7 +2,7 @@
 //|                                                Test_CIniFile.mq5 |
 //+------------------------------------------------------------------+
 #property version   "1.00"
-#include <IniFile.mqh>
+#include <MyProjects\EquityCurve\IniFile.mqh>
 //+------------------------------------------------------------------+
 //| Script program start function                                    |
 //+------------------------------------------------------------------+

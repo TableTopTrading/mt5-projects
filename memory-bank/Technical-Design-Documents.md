@@ -451,13 +451,13 @@ The ValidateAccountType() method implements strict account type restrictions:
 - **Safety**: Prevents accidental execution on unauthorized account types
 - **Status**: ✅ IMPLEMENTED - Standard includes integrated for AccountInfo functionality
 
-#### Logging Framework (Sprint 2.3 - Enhanced)
+#### Logging Framework (Sprint 2.3 - Enhanced with Sprint 2.6 Fix)
 The controller includes a comprehensive file-based logging system with:
 - **Log Levels**: INFO, WARN, ERROR with appropriate prefixing and timestamping
 - **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log) with automatic rotation
 - **Log Rotation**: 10MB maximum file size with automatic rotation and archival
 - **Timestamp Format**: Precise timestamps with millisecond precision [YYYY-MM-DD HH:MM:SS.mmm]
-- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration and parameter logging
+- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration and parameter logging (uses direct Print() to avoid circular dependencies)
 - **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
 - **Audit Trail**: Comprehensive logging for security, debugging, and compliance purposes
 - **Status**: ✅ IMPLEMENTED - Full file-based logging with rotation and error handling
@@ -793,5 +793,108 @@ public:
     }
 };
 ```
+
+## Sprint 2.6 Enhancements - Configuration File Support
+
+### Completed Enhancements
+
+#### 1. CIniFile Library Integration
+- ✅ **Library Selection**: Integrated Batohov's CIniFile class for robust INI file handling using Windows API calls
+- ✅ **Object-Oriented Design**: Class-based approach that fits perfectly with existing MVC architecture
+- ✅ **Native Performance**: Uses Windows kernel32.dll functions for efficient INI operations
+- ✅ **Comprehensive Features**: Supports all data types (string, int, double, bool, datetime) with section/key management
+
+#### 2. Configuration Management Methods
+- ✅ **LoadConfiguration()**: Loads parameters from INI file with default fallbacks and validation
+- ✅ **SaveConfiguration()**: Saves current settings to INI file with comprehensive error handling
+- ✅ **ReloadConfiguration()**: Reloads configuration without EA restart for dynamic updates
+- ✅ **Parameter Priority**: Implements three-tier loading strategy (config file → input params → defaults)
+
+#### 3. Configuration File Structure
+- ✅ **Standard INI Format**: Uses industry-standard INI file format for compatibility
+- ✅ **File Location**: `EquityCurveSignals\Configuration\EquityCurveConfig.ini`
+- ✅ **Section Organization**: [General] section for all EA parameters
+- ✅ **Parameter Types**: Supports all EA input parameter types with proper data conversion
+
+#### 4. Enhanced Error Handling & Logging
+- ✅ **Comprehensive Error Reporting**: Detailed error messages for all configuration operations
+- ✅ **Graceful Degradation**: Falls back to input parameters when config file is missing/invalid
+- ✅ **Audit Logging**: All configuration operations are logged for audit trail purposes
+- ✅ **Validation Integration**: Uses existing parameter validation framework for loaded values
+
+### Technical Implementation Details
+
+#### Configuration Methods in CEquityCurveController
+```mql5
+// Configuration methods (Sprint 2.6)
+bool LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                      double &weak_threshold, double &position_size, 
+                      int &update_frequency);
+bool SaveConfiguration(string symbol_list, double strong_threshold, 
+                      double weak_threshold, double position_size, 
+                      int update_frequency);
+bool ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                        double &weak_threshold, double &position_size, 
+                        int &update_frequency);
+```
+
+#### Configuration File Format
+```ini
+[General]
+SymbolList=EURUSD,GBPUSD,USDJPY
+StrongThreshold=0.7
+WeakThreshold=0.3
+PositionSize=0.1
+UpdateFrequency=60
+```
+
+#### Priority-Based Parameter Loading
+The EA loads parameters in this priority order:
+1. **Configuration File**: Primary source when file exists and values are valid
+2. **Input Parameters**: Fallback when config file is missing or invalid  
+3. **Hardcoded Defaults**: Safety net for all parameter types
+
+#### Enhanced EA Initialization
+```mql5
+int OnInit() {
+    // Load configuration first, fallback to input parameters
+    if(!controller.LoadConfiguration(config_symbol_list, config_strong_threshold,
+                                   config_weak_threshold, config_position_size,
+                                   config_update_frequency)) {
+        // Use input parameters as fallback
+        config_symbol_list = SymbolList;
+        // ... other parameters
+    }
+    
+    // Validate loaded/input parameters
+    if(!ValidateInputParameters(config_symbol_list, config_strong_threshold,
+                              config_weak_threshold, config_position_size,
+                              config_update_frequency)) {
+        return INIT_FAILED;
+    }
+}
+```
+
+### Testing Infrastructure
+
+#### Comprehensive Test Script
+Created `Test_Configuration.mq5` with four test scenarios:
+1. **Save Configuration**: Tests saving parameters to INI file
+2. **Load Configuration**: Tests loading and validating parameters
+3. **Reload Configuration**: Tests dynamic reload functionality
+4. **Different Values**: Tests configuration with various parameter sets
+
+#### Test Coverage
+- ✅ File creation and formatting validation
+- ✅ Parameter reading with various data types
+- ✅ Error handling for missing files/sections/keys
+- ✅ Validation of configuration parameters
+- ✅ Integration with existing parameter validation
+
+### Next Steps Enabled
+- **Live Configuration Reload**: Foundation for implementing file change detection
+- **Advanced Configuration**: Support for multiple configuration sections/profiles
+- **User Interface**: Potential for configuration management UI
+- **Backup/Restore**: Configuration versioning and backup capabilities
 
 This technical design document provides comprehensive specifications for implementing the Equity Curve Trading System with proper architecture, error handling, and performance considerations.
