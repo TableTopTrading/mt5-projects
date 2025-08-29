@@ -43,6 +43,7 @@ input double StrongThreshold = 0.7;
 input double WeakThreshold = 0.3;
 input double PositionSize = 0.1;
 input int UpdateFrequency = 60; // seconds
+input int ReloadConfigKey = 115; // F4 key for manual configuration reload (Sprint 2.7)
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
@@ -140,6 +141,69 @@ void ProcessSignals()
 {
     // Signal processing will be implemented in future sprints
     // This is a placeholder that will be replaced with CSignalGenerator and CTradeManager
+}
+
+//+------------------------------------------------------------------+
+//| Chart event handler for manual configuration reload              |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id,
+                  const long &lparam,
+                  const double &dparam,
+                  const string &sparam)
+{
+    // Handle key press events for manual configuration reload
+    if(id == CHARTEVENT_KEYDOWN)
+    {
+        if(lparam == ReloadConfigKey)
+        {
+            Print("Manual configuration reload triggered by hotkey (F4)");
+            ForceReloadConfiguration();
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Force reload configuration from file                             |
+//+------------------------------------------------------------------+
+void ForceReloadConfiguration()
+{
+    string config_symbol_list;
+    double config_strong_threshold;
+    double config_weak_threshold;
+    double config_position_size;
+    int config_update_frequency;
+    
+    Print("Manual configuration reload initiated...");
+    
+    // Reload configuration from file
+    if(controller.ReloadConfiguration(config_symbol_list, config_strong_threshold,
+                                     config_weak_threshold, config_position_size,
+                                     config_update_frequency))
+    {
+        // Validate the reloaded parameters
+        if(ValidateInputParameters(config_symbol_list, config_strong_threshold,
+                                 config_weak_threshold, config_position_size,
+                                 config_update_frequency))
+        {
+            Print("Configuration reloaded successfully:");
+            Print("SymbolList: " + config_symbol_list);
+            Print("StrongThreshold: " + DoubleToString(config_strong_threshold, 2));
+            Print("WeakThreshold: " + DoubleToString(config_weak_threshold, 2));
+            Print("PositionSize: " + DoubleToString(config_position_size, 2));
+            Print("UpdateFrequency: " + IntegerToString(config_update_frequency));
+            
+            // TODO: Apply the new configuration to the running EA
+            // This will be implemented in future sprints when signal processing is active
+        }
+        else
+        {
+            Print("ERROR: Reloaded configuration failed validation");
+        }
+    }
+    else
+    {
+        Print("ERROR: Failed to reload configuration from file");
+    }
 }
 
 //+------------------------------------------------------------------+

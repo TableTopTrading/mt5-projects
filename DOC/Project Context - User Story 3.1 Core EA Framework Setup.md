@@ -123,20 +123,43 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 4. __Configuration File Structure__: Uses standard INI format:
 5. __Enhanced Error Handling__: Comprehensive error reporting for configuration operations with integration into existing logging system
 
+#### Sprint 2.7 Live Configuration Reload Implementation Plan
+1. Added Private Member Variable
+	- Added `m_last_config_modify_time` to track the last known modification time of the configuration file
+2. Implemented CheckConfigFileModified() Method
+	- Created a robust method that uses `FileGetInteger()` with `FILE_MODIFY_DATE` to detect configuration file changes
+	- Includes comprehensive error handling with descriptive error messages
+	- Handles edge cases like missing files and first-time initialization
+	- Provides detailed logging of modification detection events
+3. Integrated into Initialization
+	- The method automatically records the initial modification time during the first check
+	- Properly handles the case where no configuration file exists yet
+4. Added to Main Processing Loop
+	- Integrated the file modification check into the `OnTick()` function in EquityCurveSignalEA.mq5
+	- The check runs on every update frequency or new bar formation
+	- Currently logs detection events with a TODO comment for future automatic reload implementation
+5. Added Hotkey Input Parameter
+	- Added `input int ReloadConfigKey = 115;` for manual configuration reload (F4 key by default)
+	- The parameter is documented with a clear comment explaining its purpose
+6. Implemented OnChartEvent() Handler
+	- Created a comprehensive chart event handler that detects key press events
+	- Specifically listens for `CHARTEVENT_KEYDOWN` events
+	- Checks if the pressed key matches the configured hotkey (F4 by default)
+	- Triggers manual reload when the hotkey is pressed
+7. Added ForceReloadConfiguration() Method
+	- Implemented a public method that can be called manually for configuration reload
+	- Uses the existing `ReloadConfiguration()` method from the controller
+	- Includes comprehensive validation of reloaded parameters
+	- Provides detailed logging of the reload process and results
+	- Includes error handling for failed reload attempts
+8. Comprehensive Error Handling and Logging
+	- All reload operations are logged with timestamps and detailed messages
+	- Validation failures are clearly reported with specific error messages
+	- Success messages include the reloaded parameter values for verification
+
+
 ---
 ### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
-
-doing ### 1. File Modification Detection
-
-- Add a private member variable to track the last known modification time of the config file
-- Implement a method `CheckConfigFileModified()` that uses `FileGetInteger()` with `FILE_MODIFY_DATE` to detect changes
-- Integrate this check into the main tick processing loop or on a timer basis
-
-### 2. Manual Reload Trigger
-
-- Add an input parameter for a hotkey (e.g., `input int ReloadConfigKey = 115;` // F4 key)
-- Implement `OnChartEvent()` handler to detect key presses and trigger reload
-- Add a public method `ForceReloadConfiguration()` that can be called manually
 
 ### 3. Configuration Validation Before Apply
 
