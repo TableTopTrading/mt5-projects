@@ -73,12 +73,9 @@ bool CConfigHandler::WriteString(string section, string key, string value)
         return false;
     }
     
-    // Ensure directory exists before writing
-    if(!EnsureDirectoryExists(m_config_file_path))
-    {
-        Print("[ERROR] Failed to ensure directory exists for: " + m_config_file_path);
-        return false;
-    }
+    // For FILE_COMMON operations, MQL5 handles directory creation automatically
+    // Skip manual directory creation to avoid permission issues with system paths
+    // MQL5 will create necessary directories when FileOpen is called with FILE_COMMON
     
     string formatted_key = FormatKey(section, key);
     string line_to_write = formatted_key + "=" + value;
@@ -280,15 +277,22 @@ string CConfigHandler::FormatKey(string section, string key)
 //+------------------------------------------------------------------+
 bool CConfigHandler::EnsureDirectoryExists(string file_path)
 {
-    // Extract directory from file path - find last backslash
-    int last_slash = StringFind(file_path, "\\", -1);
-    if(last_slash <= 0)
+    // Split the path by backslashes to properly handle Windows paths
+    string parts[];
+    int part_count = StringSplit(file_path, '\\', parts);
+    
+    if(part_count <= 1)
     {
         return true; // No directory component or invalid path
     }
     
-    // Extract directory path (everything before the last backslash)
-    string directory = StringSubstr(file_path, 0, last_slash);
+    // Remove the last part (filename) to get the directory
+    string directory = "";
+    for(int i = 0; i < part_count - 1; i++)
+    {
+        if(i > 0) directory += "\\";
+        directory += parts[i];
+    }
     
     // Debug output to verify path extraction
     Print("[DEBUG] Extracted directory: " + directory + " from file: " + file_path);
@@ -312,24 +316,39 @@ bool CConfigHandler::EnsureDirectoryExists(string file_path)
     {
         Print("[WARN] Failed to create directory: " + directory + " (Error " + IntegerToString(error_code) + ")");
         
-        // Try creating parent directories
-        int prev_slash = StringFind(directory, "\\", -2); // Find second-to-last slash
-        if(prev_slash > 0)
+        // Try creating parent directories by building them step by step
+        string current_path = "";
+        for(int i = 0; i < part_count - 1; i++)
         {
-            string parent_dir = StringSubstr(directory, 0, prev_slash);
-            if(EnsureDirectoryExists(parent_dir + "\\dummy.txt")) // Recursive call with dummy filename
+            if(i > 0) current_path += "\\";
+            current_path += parts[i];
+            
+            // Skip drive letter (e.g., "C:") as it already exists
+            if(i == 0 && StringFind(parts[i], ":") != -1)
             {
-                // Retry creating the target directory
-                if(FolderCreate(directory, FILE_COMMON))
+                continue;
+            }
+            
+            if(!FolderCreate(current_path, FILE_COMMON))
+            {
+                int create_error = GetLastError();
+                if(create_error != 5016) // If not "already exists" error
                 {
-                    return true;
-                }
-                error_code = GetLastError();
-                if(error_code == 5016) // Directory now exists
-                {
-                    return true;
+                    Print("[WARN] Failed to create subdirectory: " + current_path + " (Error " + IntegerToString(create_error) + ")");
                 }
             }
+        }
+        
+        // Final attempt to create the target directory
+        if(FolderCreate(directory, FILE_COMMON))
+        {
+            return true;
+        }
+        
+        error_code = GetLastError();
+        if(error_code == 5016) // Directory now exists
+        {
+            return true;
         }
         
         Print("[ERROR] Failed to create directory after recursive attempt: " + directory + " (Error " + IntegerToString(error_code) + ")");

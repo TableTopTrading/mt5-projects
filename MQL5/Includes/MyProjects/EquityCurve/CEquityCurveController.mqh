@@ -216,26 +216,72 @@ bool CEquityCurveController::Initialize(void)
     // Validate account type first
     if(!ValidateAccountType())
     {
-        Print("Account type validation failed");
+        LogError("Account validation failed - cannot initialize controller");
         return false;
     }
     
-    // Setup directories for logging and output
+    // Setup required directories
     if(!SetupDirectories())
     {
-        Print("Failed to setup directories");
+        LogError("Failed to setup required directories");
         return false;
     }
     
     // Configure logging
     if(!ConfigureLogging())
     {
-        Print("Failed to configure logging");
+        LogError("Failed to configure logging");
         return false;
     }
     
+    // Load configuration
+    string symbol_list;
+    double strong_threshold, weak_threshold, position_size;
+    int update_frequency;
+    
+    if(!LoadConfiguration(symbol_list, strong_threshold, weak_threshold, position_size, update_frequency))
+    {
+        LogError("Failed to load configuration");
+        return false;
+    }
+    
+    // Log initialization parameters
+    LogInitializationParameters(symbol_list, strong_threshold, weak_threshold, position_size, update_frequency);
+    
     m_initialized = true;
-    Print("EquityCurveController initialized successfully");
+    LogInfo("CEquityCurveController initialized successfully");
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Load configuration from file                                     |
+//+------------------------------------------------------------------+
+bool CEquityCurveController::LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                                              double &weak_threshold, double &position_size, 
+                                              int &update_frequency)
+{
+    string config_file = m_config_path + "EquityCurveConfig.ini"; // Use relative path for FILE_COMMON
+    
+    // Initialize configuration file handler
+    m_config_handler.Init(config_file);
+    
+    LogInfo("Loading configuration from: " + config_file);
+    
+    // Load parameters with default values using new handler
+    symbol_list = m_config_handler.ReadString("General", "SymbolList", "EURUSD,GBPUSD,USDJPY");
+    strong_threshold = m_config_handler.ReadDouble("General", "StrongThreshold", 0.7);
+    weak_threshold = m_config_handler.ReadDouble("General", "WeakThreshold", 0.3);
+    position_size = m_config_handler.ReadDouble("General", "PositionSize", 0.1);
+    update_frequency = m_config_handler.ReadInteger("General", "UpdateFrequency", 60);
+    
+    // Log loaded configuration
+    LogInfo("Configuration loaded - SymbolList: " + symbol_list + 
+            ", StrongThreshold: " + DoubleToString(strong_threshold, 2) +
+            ", WeakThreshold: " + DoubleToString(weak_threshold, 2) +
+            ", PositionSize: " + DoubleToString(position_size, 2) +
+            ", UpdateFrequency: " + IntegerToString(update_frequency));
+    
     return true;
 }
 
@@ -612,36 +658,6 @@ void CEquityCurveController::Cleanup(void)
     LogInfo("CEquityCurveController cleanup completed - all resources released");
 }
 
-//+------------------------------------------------------------------+
-//| Load configuration from file                                     |
-//+------------------------------------------------------------------+
-bool CEquityCurveController::LoadConfiguration(string &symbol_list, double &strong_threshold, 
-                                              double &weak_threshold, double &position_size, 
-                                              int &update_frequency)
-{
-    string config_file = GetFullConfigPath(m_config_path + "EquityCurveConfig.ini");
-    
-    // Initialize configuration file handler
-    m_config_handler.Init(config_file);
-    
-    LogInfo("Loading configuration from: " + config_file);
-    
-    // Load parameters with default values using new handler
-    symbol_list = m_config_handler.ReadString("General", "SymbolList", "EURUSD,GBPUSD,USDJPY");
-    strong_threshold = m_config_handler.ReadDouble("General", "StrongThreshold", 0.7);
-    weak_threshold = m_config_handler.ReadDouble("General", "WeakThreshold", 0.3);
-    position_size = m_config_handler.ReadDouble("General", "PositionSize", 0.1);
-    update_frequency = m_config_handler.ReadInteger("General", "UpdateFrequency", 60);
-    
-    // Log loaded configuration
-    LogInfo("Configuration loaded - SymbolList: " + symbol_list + 
-            ", StrongThreshold: " + DoubleToString(strong_threshold, 2) +
-            ", WeakThreshold: " + DoubleToString(weak_threshold, 2) +
-            ", PositionSize: " + DoubleToString(position_size, 2) +
-            ", UpdateFrequency: " + IntegerToString(update_frequency));
-    
-    return true;
-}
 
 //+------------------------------------------------------------------+
 //| Save configuration to file                                       |
@@ -650,7 +666,7 @@ bool CEquityCurveController::SaveConfiguration(string symbol_list, double strong
                                               double weak_threshold, double position_size, 
                                               int update_frequency)
 {
-    string config_file = GetFullConfigPath(m_config_path + "EquityCurveConfig.ini");
+    string config_file = m_config_path + "EquityCurveConfig.ini"; // Use relative path for FILE_COMMON
     
     // Initialize configuration file handler
     m_config_handler.Init(config_file);
@@ -701,14 +717,6 @@ bool CEquityCurveController::SaveConfiguration(string symbol_list, double strong
     {
         LogError("Configuration file does not exist after save operation: " + config_file);
         success = false;
-        
-        // Check if directory exists
-        string directory = StringSubstr(config_file, 0, StringLen(config_file) - StringLen("EquityCurveConfig.ini"));
-        if(!FolderCreate(directory, FILE_COMMON))
-        {
-            int error_code = GetLastError();
-            LogError("Failed to create configuration directory: " + directory + " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
-        }
     }
     }
     else
