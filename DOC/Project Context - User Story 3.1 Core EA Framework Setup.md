@@ -110,7 +110,6 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- Uses existing error handling framework with descriptive error messages
 	- Graceful degradation - prevents EA initialization with invalid parameters
 	- Comprehensive error reporting for all validation failures
-
 #### Sprint 2.6 - Configuration File Support for the Equity Curve Signal EA. Here's what was accomplished:
 1. __CIniFile Library Integration__: Integrated Batohov's CIniFile class for robust INI file handling using Windows API calls
 2. __Configuration Management Methods__: Added to CEquityCurveController:
@@ -122,24 +121,96 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
    - EA input parameters (fallback)
    - Hardcoded defaults (safety net)
 4. __Configuration File Structure__: Uses standard INI format:
-   ```ini
-   [General]
-   SymbolList=EURUSD,GBPUSD,USDJPY
-   StrongThreshold=0.7
-   WeakThreshold=0.3
-   PositionSize=0.1
-   UpdateFrequency=60
-   ```
 5. __Enhanced Error Handling__: Comprehensive error reporting for configuration operations with integration into existing logging system
-6. __Testing Infrastructure__: Created comprehensive test script (`Test_Configuration.mq5`) to verify all configuration functionality
 
 ---
-### Current Task -  Sprint 2.7: Live Configuration Reload
-- __Objective:__ Implement live configuration reload functionality
-- __Activities:__
-- [ ] Add file modification timestamp checking for automatic reload detection
-- [ ] Implement manual reload trigger functionality
-- [ ] Add configuration change validation before applying
-- [ ] Ensure thread-safe configuration updates
-- [ ] Test live reload functionality
-- [ ] Update documentation with reload instructions
+### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
+
+doing ### 1. File Modification Detection
+
+- Add a private member variable to track the last known modification time of the config file
+- Implement a method `CheckConfigFileModified()` that uses `FileGetInteger()` with `FILE_MODIFY_DATE` to detect changes
+- Integrate this check into the main tick processing loop or on a timer basis
+
+### 2. Manual Reload Trigger
+
+- Add an input parameter for a hotkey (e.g., `input int ReloadConfigKey = 115;` // F4 key)
+- Implement `OnChartEvent()` handler to detect key presses and trigger reload
+- Add a public method `ForceReloadConfiguration()` that can be called manually
+
+### 3. Configuration Validation Before Apply
+
+- Enhance the existing `ValidateInputParameters()` method to handle validation of new values
+- Add a method `ValidateConfigurationChanges()` that compares old vs new values and checks for validity
+- Implement rollback mechanism if new configuration is invalid
+
+### 4. Thread-Safe Updates
+
+- Since MQL5 is single-threaded, focus on atomic operations and state consistency
+- Use critical sections or flags to prevent concurrent access during reload
+- Ensure all configuration data is copied atomically to avoid partial updates
+
+### 5. Testing Implementation
+
+- Create comprehensive test cases in `Test_Configuration.mq5` for live reload scenarios
+- Test automatic detection on file change
+- Test manual trigger via hotkey
+- Test error handling for invalid configurations during reload
+
+### 6. Documentation Updates
+
+- Update user guide with reload instructions and hotkey information
+- Add comments in code for the new functionality
+- Document the reload process in the memory bank
+
+---
+## Next Task
+## Sprint 2.8: Resource Cleanup Guarantees Implementation Plan
+
+### 1. Enhanced Cleanup Method
+
+- Review current `Cleanup()` method and ensure it releases all resources
+- Add explicit cleanup for the CIniFile object if needed (check if it requires manual disposal)
+- Ensure all file handles are properly closed, not just the log file
+
+### 2. Destructor Improvements
+
+- Enhance the destructor to call `Cleanup()` if not already done
+- Add logging in destructor to track object destruction
+- Ensure proper order of cleanup operations
+
+### 3. Resource Leak Detection
+
+- Implement resource tracking counters for file handles and memory allocations
+- Add debug methods to report open resources
+- Integrate with logging system to report potential leaks
+
+### 4. Comprehensive Testing
+
+- Test cleanup during normal deinitialization (`OnDeinit`)
+- Test cleanup during error conditions and forced termination
+- Verify no open file handles using external tools or MQL5 functions
+- Test memory usage before and after cleanup
+
+### 5. Audit Logging
+
+- Enhance cleanup logging to include details of resources released
+- Log cleanup operations with timestamps and success status
+- Ensure cleanup logs are written even if file logging is unavailable
+
+### 6. Integration with Existing Framework
+
+- Ensure cleanup works with all currently implemented components
+- Coordinate with future components to maintain cleanup standards
+- Update technical documentation with cleanup procedures
+
+## Implementation Priority
+
+I recommend implementing Sprint 2.7 first since it builds directly on the existing configuration system, followed by Sprint 2.8 to ensure robust resource management.
+
+## Technical Considerations
+
+- For file modification detection, use `FileGetInteger()` with `FILE_MODIFY_DATE` which is efficient and non-blocking
+- For thread safety, since MQL5 is single-threaded, simple flags should suffice to prevent reentrancy
+- The CIniFile library appears to be stateless for read operations, so reloads should be safe
+- Resource cleanup should focus on the log file handle and any potential resources from CIniFile

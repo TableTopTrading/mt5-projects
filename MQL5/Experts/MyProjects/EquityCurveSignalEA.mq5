@@ -121,6 +121,13 @@ void OnTick()
     // Update on frequency or new bar
     if(TimeCurrent() - last_update >= UpdateFrequency || IsNewBar())
     {
+        // Check for configuration file modifications (Sprint 2.7)
+        if(controller.CheckConfigFileModified())
+        {
+            Print("Configuration file modified detected - reload required");
+            // TODO: Implement automatic reload logic in future sprint
+        }
+        
         ProcessSignals();
         last_update = TimeCurrent();
     }

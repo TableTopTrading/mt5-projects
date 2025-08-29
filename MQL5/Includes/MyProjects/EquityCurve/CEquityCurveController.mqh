@@ -139,6 +139,7 @@ private:
     string          m_current_log_file; // Current log filename
     long            m_max_log_size;     // Maximum log file size in bytes (10MB)
     CIniFile        m_config_file;      // Configuration file handler (Sprint 2.6)
+    datetime        m_last_config_modify_time; // Last known modification time of config file (Sprint 2.7)
     
 public:
     //--- Constructor and destructor
@@ -174,6 +175,9 @@ public:
     bool              ReloadConfiguration(string &symbol_list, double &strong_threshold, 
                                          double &weak_threshold, double &position_size, 
                                          int &update_frequency);
+    
+    //--- File modification detection methods (Sprint 2.7)
+    bool              CheckConfigFileModified(void);
     
     //--- Getter methods
     bool              IsInitialized(void) const { return m_initialized; }
@@ -665,6 +669,51 @@ bool CEquityCurveController::ReloadConfiguration(string &symbol_list, double &st
 {
     LogInfo("Reloading configuration from file");
     return LoadConfiguration(symbol_list, strong_threshold, weak_threshold, position_size, update_frequency);
+}
+
+//+------------------------------------------------------------------+
+//| Check if configuration file has been modified                    |
+//+------------------------------------------------------------------+
+bool CEquityCurveController::CheckConfigFileModified(void)
+{
+    string config_file = m_config_path + "EquityCurveConfig.ini";
+    
+    // Check if file exists
+    if(!FileIsExist(config_file, FILE_COMMON))
+    {
+        // File doesn't exist, nothing to check
+        return false;
+    }
+    
+    // Get current modification time
+    datetime current_modify_time = (datetime)FileGetInteger(config_file, FILE_MODIFY_DATE, FILE_COMMON);
+    int error_code = GetLastError();
+    
+    if(error_code != 0)
+    {
+        LogError("Failed to get file modification time for: " + config_file + 
+                " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
+        return false;
+    }
+    
+    // If this is the first check, store the time and return false (no modification yet)
+    if(m_last_config_modify_time == 0)
+    {
+        m_last_config_modify_time = current_modify_time;
+        LogInfo("Initial config file modification time recorded: " + TimeToString(current_modify_time, TIME_DATE|TIME_SECONDS));
+        return false;
+    }
+    
+    // Check if file has been modified
+    if(current_modify_time > m_last_config_modify_time)
+    {
+        LogInfo("Configuration file modified detected. Old: " + TimeToString(m_last_config_modify_time, TIME_DATE|TIME_SECONDS) + 
+                ", New: " + TimeToString(current_modify_time, TIME_DATE|TIME_SECONDS));
+        m_last_config_modify_time = current_modify_time;
+        return true;
+    }
+    
+    return false;
 }
 
 //+------------------------------------------------------------------+
