@@ -14,6 +14,7 @@
 
 // Project includes
 // #include <Files/File.mqh>  // Not needed - using MQL5 built-in functions
+#include "inifile.mqh"  // Configuration file support (Sprint 2.6)
 
 // Error handling utilities
 #define ERROR_SUCCESS 0
@@ -137,6 +138,7 @@ private:
     int             m_log_file_handle;  // File handle for logging
     string          m_current_log_file; // Current log filename
     long            m_max_log_size;     // Maximum log file size in bytes (10MB)
+    CIniFile        m_config_file;      // Configuration file handler (Sprint 2.6)
     
 public:
     //--- Constructor and destructor
@@ -161,6 +163,17 @@ public:
     
     //--- Utility methods
     bool              CreateDirectoryWithCheck(string path);
+    
+    //--- Configuration methods (Sprint 2.6)
+    bool              LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                                       double &weak_threshold, double &position_size, 
+                                       int &update_frequency);
+    bool              SaveConfiguration(string symbol_list, double strong_threshold, 
+                                       double weak_threshold, double position_size, 
+                                       int update_frequency);
+    bool              ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                                         double &weak_threshold, double &position_size, 
+                                         int &update_frequency);
     
     //--- Getter methods
     bool              IsInitialized(void) const { return m_initialized; }
@@ -524,34 +537,36 @@ void CEquityCurveController::LogInitializationParameters(string symbol_list, dou
                                                         double weak_threshold, double position_size, 
                                                         int update_frequency)
 {
-    LogInfo("=== INITIALIZATION PARAMETERS ===");
-    LogInfo("EA Version: 1.00");
-    LogInfo("Account: " + AccountInfoString(ACCOUNT_NAME));
-    LogInfo("Server: " + AccountInfoString(ACCOUNT_SERVER));
-    LogInfo("Account Type: " + IntegerToString(AccountInfoInteger(ACCOUNT_TRADE_MODE)));
-    LogInfo("Balance: " + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2));
-    LogInfo("Equity: " + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY), 2));
+    // Use direct Print statements to avoid circular dependency with logging methods
+    // that might call ConfigureLogging() again through CheckLogRotation()
+    Print("=== INITIALIZATION PARAMETERS ===");
+    Print("EA Version: 1.00");
+    Print("Account: " + AccountInfoString(ACCOUNT_NAME));
+    Print("Server: " + AccountInfoString(ACCOUNT_SERVER));
+    Print("Account Type: " + IntegerToString(AccountInfoInteger(ACCOUNT_TRADE_MODE)));
+    Print("Balance: " + DoubleToString(AccountInfoDouble(ACCOUNT_BALANCE), 2));
+    Print("Equity: " + DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY), 2));
     
     // Log EA input parameters
-    LogInfo("SymbolList: " + symbol_list);
-    LogInfo("StrongThreshold: " + DoubleToString(strong_threshold, 2));
-    LogInfo("WeakThreshold: " + DoubleToString(weak_threshold, 2));
-    LogInfo("PositionSize: " + DoubleToString(position_size, 2));
-    LogInfo("UpdateFrequency: " + IntegerToString(update_frequency) + " seconds");
+    Print("SymbolList: " + symbol_list);
+    Print("StrongThreshold: " + DoubleToString(strong_threshold, 2));
+    Print("WeakThreshold: " + DoubleToString(weak_threshold, 2));
+    Print("PositionSize: " + DoubleToString(position_size, 2));
+    Print("UpdateFrequency: " + IntegerToString(update_frequency) + " seconds");
     
     // Log system configuration
-    LogInfo("Log Path: " + m_log_path);
-    LogInfo("Output Path: " + m_output_path);
-    LogInfo("Config Path: " + m_config_path);
-    LogInfo("Max Log Size: " + IntegerToString(m_max_log_size / (1024 * 1024)) + "MB");
+    Print("Log Path: " + m_log_path);
+    Print("Output Path: " + m_output_path);
+    Print("Config Path: " + m_config_path);
+    Print("Max Log Size: " + IntegerToString(m_max_log_size / (1024 * 1024)) + "MB");
     
     // Log validation status
-    LogInfo("Parameter Validation: PASSED");
-    LogInfo("Account Validation: " + (ValidateAccountType() ? "PASSED" : "FAILED"));
-    LogInfo("Directory Setup: " + (SetupDirectories() ? "COMPLETED" : "FAILED"));
-    LogInfo("Logging Configuration: " + (ConfigureLogging() ? "ACTIVE" : "INACTIVE"));
+    Print("Parameter Validation: PASSED");
+    Print("Account Validation: " + (ValidateAccountType() ? "PASSED" : "FAILED"));
+    Print("Directory Setup: " + (SetupDirectories() ? "COMPLETED" : "FAILED"));
+    Print("Logging Configuration: " + (m_log_file_handle != INVALID_HANDLE ? "ACTIVE" : "INACTIVE"));
     
-    LogInfo("=== END INITIALIZATION PARAMETERS ===");
+    Print("=== END INITIALIZATION PARAMETERS ===");
 }
 
 //+------------------------------------------------------------------+
@@ -574,6 +589,82 @@ void CEquityCurveController::Cleanup(void)
     m_current_log_file = "";
     
     LogInfo("CEquityCurveController cleanup completed - all resources released");
+}
+
+//+------------------------------------------------------------------+
+//| Load configuration from INI file                                 |
+//+------------------------------------------------------------------+
+bool CEquityCurveController::LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                                              double &weak_threshold, double &position_size, 
+                                              int &update_frequency)
+{
+    string config_file = m_config_path + "EquityCurveConfig.ini";
+    
+    // Initialize configuration file handler
+    m_config_file.Init(config_file);
+    
+    LogInfo("Loading configuration from: " + config_file);
+    
+    // Load parameters with default values
+    symbol_list = m_config_file.ReadString("General", "SymbolList", "EURUSD,GBPUSD,USDJPY");
+    strong_threshold = m_config_file.ReadFloat("General", "StrongThreshold", 0.7);
+    weak_threshold = m_config_file.ReadFloat("General", "WeakThreshold", 0.3);
+    position_size = m_config_file.ReadFloat("General", "PositionSize", 0.1);
+    update_frequency = (int)m_config_file.ReadInteger("General", "UpdateFrequency", 60);
+    
+    // Log loaded configuration
+    LogInfo("Configuration loaded - SymbolList: " + symbol_list + 
+            ", StrongThreshold: " + DoubleToString(strong_threshold, 2) +
+            ", WeakThreshold: " + DoubleToString(weak_threshold, 2) +
+            ", PositionSize: " + DoubleToString(position_size, 2) +
+            ", UpdateFrequency: " + IntegerToString(update_frequency));
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Save configuration to INI file                                   |
+//+------------------------------------------------------------------+
+bool CEquityCurveController::SaveConfiguration(string symbol_list, double strong_threshold, 
+                                              double weak_threshold, double position_size, 
+                                              int update_frequency)
+{
+    string config_file = m_config_path + "EquityCurveConfig.ini";
+    
+    // Initialize configuration file handler
+    m_config_file.Init(config_file);
+    
+    LogInfo("Saving configuration to: " + config_file);
+    
+    // Save all parameters
+    bool success = true;
+    success &= m_config_file.WriteString("General", "SymbolList", symbol_list);
+    success &= m_config_file.WriteFloat("General", "StrongThreshold", strong_threshold);
+    success &= m_config_file.WriteFloat("General", "WeakThreshold", weak_threshold);
+    success &= m_config_file.WriteFloat("General", "PositionSize", position_size);
+    success &= m_config_file.WriteInteger("General", "UpdateFrequency", update_frequency);
+    
+    if(success)
+    {
+        LogInfo("Configuration saved successfully");
+    }
+    else
+    {
+        LogError("Failed to save configuration to: " + config_file);
+    }
+    
+    return success;
+}
+
+//+------------------------------------------------------------------+
+//| Reload configuration from file                                   |
+//+------------------------------------------------------------------+
+bool CEquityCurveController::ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                                                double &weak_threshold, double &position_size, 
+                                                int &update_frequency)
+{
+    LogInfo("Reloading configuration from file");
+    return LoadConfiguration(symbol_list, strong_threshold, weak_threshold, position_size, update_frequency);
 }
 
 //+------------------------------------------------------------------+

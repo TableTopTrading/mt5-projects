@@ -49,17 +49,39 @@ input int UpdateFrequency = 60; // seconds
 //+------------------------------------------------------------------+
 int OnInit()
 {
-    // Validate input parameters first
-    if(!ValidateInputParameters())
-    {
-        Print("Input parameter validation failed");
-        return INIT_FAILED;
-    }
+    string config_symbol_list;
+    double config_strong_threshold;
+    double config_weak_threshold;
+    double config_position_size;
+    int config_update_frequency;
     
     // Initialize controller (handles account validation, directories, logging)
     if(!controller.Initialize())
     {
         Print("Failed to initialize EquityCurveController");
+        return INIT_FAILED;
+    }
+    
+    // Load configuration from file (Sprint 2.6)
+    if(!controller.LoadConfiguration(config_symbol_list, config_strong_threshold, 
+                                   config_weak_threshold, config_position_size, 
+                                   config_update_frequency))
+    {
+        Print("Failed to load configuration from file, using input parameters as fallback");
+        // Use input parameters as fallback
+        config_symbol_list = SymbolList;
+        config_strong_threshold = StrongThreshold;
+        config_weak_threshold = WeakThreshold;
+        config_position_size = PositionSize;
+        config_update_frequency = UpdateFrequency;
+    }
+    
+    // Validate loaded/input parameters
+    if(!ValidateInputParameters(config_symbol_list, config_strong_threshold, 
+                              config_weak_threshold, config_position_size, 
+                              config_update_frequency))
+    {
+        Print("Input parameter validation failed");
         return INIT_FAILED;
     }
     
@@ -71,7 +93,9 @@ int OnInit()
     }
     
     // Log initialization parameters with actual values
-    controller.LogInitializationParameters(SymbolList, StrongThreshold, WeakThreshold, PositionSize, UpdateFrequency);
+    controller.LogInitializationParameters(config_symbol_list, config_strong_threshold, 
+                                         config_weak_threshold, config_position_size, 
+                                         config_update_frequency);
     
     Print("EquityCurveSignalEA initialized successfully");
     return INIT_SUCCEEDED;
@@ -131,17 +155,19 @@ bool IsNewBar()
 //+------------------------------------------------------------------+
 //| Validate input parameters                                        |
 //+------------------------------------------------------------------+
-bool ValidateInputParameters()
+bool ValidateInputParameters(string symbol_list, double strong_threshold, 
+                            double weak_threshold, double position_size, 
+                            int update_frequency)
 {
     // Validate SymbolList format and existence
-    if(StringLen(SymbolList) == 0)
+    if(StringLen(symbol_list) == 0)
     {
         Print("ERROR: SymbolList cannot be empty");
         return false;
     }
     
     string symbols[];
-    int symbol_count = StringSplit(SymbolList, ',', symbols);
+    int symbol_count = StringSplit(symbol_list, ',', symbols);
     
     if(symbol_count == 0)
     {
@@ -171,38 +197,38 @@ bool ValidateInputParameters()
     }
     
     // Validate StrongThreshold range (0.0-1.0)
-    if(StrongThreshold < 0.0 || StrongThreshold > 1.0)
+    if(strong_threshold < 0.0 || strong_threshold > 1.0)
     {
-        Print("ERROR: StrongThreshold must be between 0.0 and 1.0, got: " + DoubleToString(StrongThreshold, 2));
+        Print("ERROR: StrongThreshold must be between 0.0 and 1.0, got: " + DoubleToString(strong_threshold, 2));
         return false;
     }
     
     // Validate WeakThreshold range (0.0-1.0)
-    if(WeakThreshold < 0.0 || WeakThreshold > 1.0)
+    if(weak_threshold < 0.0 || weak_threshold > 1.0)
     {
-        Print("ERROR: WeakThreshold must be between 0.0 and 1.0, got: " + DoubleToString(WeakThreshold, 2));
+        Print("ERROR: WeakThreshold must be between 0.0 and 1.0, got: " + DoubleToString(weak_threshold, 2));
         return false;
     }
     
     // Validate threshold logic (StrongThreshold should be greater than WeakThreshold)
-    if(StrongThreshold <= WeakThreshold)
+    if(strong_threshold <= weak_threshold)
     {
-        Print("ERROR: StrongThreshold (" + DoubleToString(StrongThreshold, 2) + 
-              ") must be greater than WeakThreshold (" + DoubleToString(WeakThreshold, 2) + ")");
+        Print("ERROR: StrongThreshold (" + DoubleToString(strong_threshold, 2) + 
+              ") must be greater than WeakThreshold (" + DoubleToString(weak_threshold, 2) + ")");
         return false;
     }
     
     // Validate PositionSize (must be positive)
-    if(PositionSize <= 0.0)
+    if(position_size <= 0.0)
     {
-        Print("ERROR: PositionSize must be positive, got: " + DoubleToString(PositionSize, 2));
+        Print("ERROR: PositionSize must be positive, got: " + DoubleToString(position_size, 2));
         return false;
     }
     
     // Validate UpdateFrequency (minimum reasonable value)
-    if(UpdateFrequency < 1)
+    if(update_frequency < 1)
     {
-        Print("ERROR: UpdateFrequency must be at least 1 second, got: " + IntegerToString(UpdateFrequency));
+        Print("ERROR: UpdateFrequency must be at least 1 second, got: " + IntegerToString(update_frequency));
         return false;
     }
     
