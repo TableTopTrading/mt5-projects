@@ -37,6 +37,9 @@ CDataManager data_manager;
 CEquityCurveController controller;
 //CTrade trade; // MT5 standard trade object (commented out for now)
 
+// Thread safety for configuration reload (Sprint 2.7)
+bool g_is_reloading_config = false;
+
 // Configuration parameters
 input string SymbolList = "EURUSD,GBPUSD,USDJPY";
 input double StrongThreshold = 0.7;
@@ -167,13 +170,23 @@ void OnChartEvent(const int id,
 //+------------------------------------------------------------------+
 void ForceReloadConfiguration()
 {
+    // Check for concurrent reload attempts (thread safety)
+    if(g_is_reloading_config)
+    {
+        Print("WARNING: Configuration reload already in progress - skipping duplicate request");
+        return;
+    }
+    
+    // Set reload flag to prevent concurrent access
+    g_is_reloading_config = true;
+    
     string config_symbol_list;
     double config_strong_threshold;
     double config_weak_threshold;
     double config_position_size;
     int config_update_frequency;
     
-    // Store current values for potential rollback
+    // Store current values for comparison
     string current_symbol_list = SymbolList;
     double current_strong_threshold = StrongThreshold;
     double current_weak_threshold = WeakThreshold;
@@ -215,6 +228,9 @@ void ForceReloadConfiguration()
     {
         Print("ERROR: Failed to reload configuration from file");
     }
+    
+    // Reset reload flag to allow future operations
+    g_is_reloading_config = false;
 }
 
 //+------------------------------------------------------------------+

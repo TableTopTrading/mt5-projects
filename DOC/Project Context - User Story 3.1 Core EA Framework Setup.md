@@ -174,25 +174,35 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- __Integrated Validation__: Uses the new validation system before applying changes
 	- __Rollback Integration__: Seamlessly integrates with the rollback mechanism
 	- __Comprehensive Logging__: Detailed progress reporting throughout the reload process
-##### Validation Process Flow
-1. __Store Current State__: Preserve all current parameter values
-2. __Reload from File__: Attempt to load new configuration from file
-3. __Basic Validation__: Validate new parameters meet fundamental requirements
-4. __Change Comparison__: Compare new values with current values and log changes
-5. __Apply or Rollback__: Apply new values if valid, or rollback to previous values if invalid
-6. __Report Results__: Provide detailed feedback about the operation outcome
-
+		- Validation Process Flow
+			1. __Store Current State__: Preserve all current parameter values
+			2. __Reload from File__: Attempt to load new configuration from file
+			3. __Basic Validation__: Validate new parameters meet fundamental requirements
+			4. __Change Comparison__: Compare new values with current values and log changes
+			5. __Apply or Rollback__: Apply new values if valid, or rollback to previous values if invalid
+			6. __Report Results__: Provide detailed feedback about the operation outcome
+13. Added Reentrancy Prevention Flag
+	- Added `bool g_is_reloading_config = false;` global variable to track reload state
+	- The flag prevents concurrent reload attempts within the single-threaded MQL5 environment
+14. Implemented Thread-Safe Reload Checking
+	- Added check at the beginning of `ForceReloadConfiguration()` to detect concurrent reload attempts
+	- If a reload is already in progress, the method logs a warning and returns early
+	- This prevents multiple simultaneous reload operations that could cause state inconsistencies
+15. Added Comprehensive Error Handling
+	- Clear warning message: "Configuration reload already in progress - skipping duplicate request"
+	- The system gracefully handles duplicate reload requests without crashing or producing errors
+	- Users receive immediate feedback about the reload status
+16. Proper Resource Management
+	- The reload flag is set to `true` at the start of the reload operation
+	- The flag is reset to `false` at the end of the operation (both success and error paths)
+	- This ensures the system always returns to a usable state
 
 ---
 ### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
 
 
+DOING
 
-### 4. Thread-Safe Updates
-
-- Since MQL5 is single-threaded, focus on atomic operations and state consistency
-- Use critical sections or flags to prevent concurrent access during reload
-- Ensure all configuration data is copied atomically to avoid partial updates
 
 ### 5. Testing Implementation
 
