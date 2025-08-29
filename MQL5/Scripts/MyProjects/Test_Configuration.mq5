@@ -70,6 +70,28 @@ void OnStart()
         Print("✗ Different values test failed");
     }
     
+    // Test 5: File modification detection (Sprint 2.7)
+    Print("\n5. Testing File Modification Detection...");
+    if(TestFileModificationDetection())
+    {
+        Print("✓ File modification detection test passed");
+    }
+    else
+    {
+        Print("✗ File modification detection test failed");
+    }
+    
+    // Test 6: Configuration validation (Sprint 2.7)
+    Print("\n6. Testing Configuration Validation...");
+    if(TestConfigurationValidation())
+    {
+        Print("✓ Configuration validation test passed");
+    }
+    else
+    {
+        Print("✗ Configuration validation test failed");
+    }
+    
     Print("\n=== Configuration Tests Completed ===");
 }
 
@@ -234,5 +256,77 @@ bool TestDifferentValues()
               IntegerToString(loaded_update_frequency));
         return false;
     }
+}
+
+//+------------------------------------------------------------------+
+//| Test file modification detection (Sprint 2.7)                   |
+//+------------------------------------------------------------------+
+bool TestFileModificationDetection()
+{
+    Print("\n5. Testing File Modification Detection...");
+    
+    // Test initial state
+    bool initial_check = controller.CheckConfigFileModified();
+    Print("Initial modification check: " + (initial_check ? "MODIFIED" : "NOT MODIFIED"));
+    
+    // The first check should return false (just records initial time)
+    if(initial_check)
+    {
+        Print("ERROR: First check should return false (only records initial time)");
+        return false;
+    }
+    
+    Print("File modification detection test completed - manual file change required for full test");
+    Print("Please modify the configuration file manually to complete this test");
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Test configuration validation (Sprint 2.7)                      |
+//+------------------------------------------------------------------+
+bool TestConfigurationValidation()
+{
+    Print("\n6. Testing Configuration Validation...");
+    
+    // Test valid parameters
+    if(!ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 60))
+    {
+        Print("ERROR: Valid parameters failed validation");
+        return false;
+    }
+    
+    // Test invalid parameters
+    if(ValidateInputParameters("", 0.7, 0.3, 0.1, 60)) // Empty symbol list
+    {
+        Print("ERROR: Empty symbol list should fail validation");
+        return false;
+    }
+    
+    if(ValidateInputParameters("EURUSD,GBPUSD", 1.5, 0.3, 0.1, 60)) // Invalid strong threshold
+    {
+        Print("ERROR: Invalid strong threshold should fail validation");
+        return false;
+    }
+    
+    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.8, 0.1, 60)) // Weak > Strong
+    {
+        Print("ERROR: Weak threshold > Strong threshold should fail validation");
+        return false;
+    }
+    
+    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, -0.1, 60)) // Negative position size
+    {
+        Print("ERROR: Negative position size should fail validation");
+        return false;
+    }
+    
+    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 0)) // Invalid update frequency
+    {
+        Print("ERROR: Invalid update frequency should fail validation");
+        return false;
+    }
+    
+    Print("Configuration validation test passed - all validation rules working correctly");
+    return true;
 }
 //+------------------------------------------------------------------+

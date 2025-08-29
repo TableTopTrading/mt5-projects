@@ -196,14 +196,42 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- The reload flag is set to `true` at the start of the reload operation
 	- The flag is reset to `false` at the end of the operation (both success and error paths)
 	- This ensures the system always returns to a usable state
+17. Enhanced Existing Test Configuration Script
+	- __Updated `Test_Configuration.mq5`__ with two new test functions:
+		- `TestFileModificationDetection()`: Tests the file modification timestamp checking system
+		  - `TestConfigurationValidation()`: Tests comprehensive parameter validation rules
+18. Created New Live Reload Test Script
+	- __Created `Test_LiveReload.mq5`__ with four comprehensive test scenarios:
+		- Test 1: Manual Trigger Simulation
+			- Simulates manual reload via `ForceReloadConfiguration()`
+			- Tests the complete reload workflow from file reading to parameter validation
+			- Verifies that reload operations complete successfully
+		- Test 2: Error Handling for Invalid Configurations
+			- Tests error handling with deliberately invalid configuration values:
+				- Non-existent symbols
+				- Out-of-range thresholds (1.5)
+				- Invalid threshold relationships (Weak > Strong)
+				- Negative position sizes
+				- Invalid update frequencies
+			- Verifies that invalid configurations are properly detected and rejected
+		- Test 3: Concurrent Reload Prevention
+			- Simulates the thread-safe reload prevention mechanism
+			- Tests that concurrent reload attempts are properly blocked
+			- Verifies the reentrancy protection logic works correctly
+		- Test 4: Configuration Validation During Reload
+			- Tests all validation scenarios with a comprehensive test matrix:
+				  - Valid configuration (should pass)
+				  - Empty symbol list (should fail)
+				  - Invalid strong threshold (should fail)
+				  - Weak threshold > Strong threshold (should fail)
+				  - Negative position size (should fail)
+				  - Invalid update frequency (should fail)
 
 ---
 ### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
 
 
-DOING
-
-
+Done
 ### 5. Testing Implementation
 
 - Create comprehensive test cases in `Test_Configuration.mq5` for live reload scenarios
