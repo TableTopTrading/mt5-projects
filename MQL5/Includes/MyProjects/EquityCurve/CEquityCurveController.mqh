@@ -678,22 +678,58 @@ bool CEquityCurveController::SaveConfiguration(string symbol_list, double strong
             ", PositionSize: " + DoubleToString(position_size, 2) +
             ", UpdateFrequency: " + IntegerToString(update_frequency));
     
-    // Save all parameters with individual error checking
+    // Build complete configuration content in memory to avoid race conditions
+    string config_content = "General.SymbolList=" + symbol_list + "\n" +
+                           "General.StrongThreshold=" + DoubleToString(strong_threshold) + "\n" +
+                           "General.WeakThreshold=" + DoubleToString(weak_threshold) + "\n" +
+                           "General.PositionSize=" + DoubleToString(position_size) + "\n" +
+                           "General.UpdateFrequency=" + IntegerToString(update_frequency) + "\n";
+    
+    LogInfo("Complete configuration content to write:\n" + config_content);
+    
+    // Write complete content to file in single atomic operation
+    int file_handle = FileOpen(config_file, FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
+    if(file_handle == INVALID_HANDLE)
+    {
+        int error_code = GetLastError();
+        LogError("Failed to open config file for writing: " + config_file + " (Error " + IntegerToString(error_code) + ")");
+        return false;
+    }
+    
+    if(FileWrite(file_handle, config_content) <= 0)
+    {
+        int error_code = GetLastError();
+        FileClose(file_handle);
+        LogError("Failed to write to config file: " + config_file + " (Error " + IntegerToString(error_code) + ")");
+        return false;
+    }
+    
+    FileClose(file_handle);
     bool success = true;
-    bool string_result = m_config_handler.WriteString("General", "SymbolList", symbol_list);
-    bool strong_result = m_config_handler.WriteDouble("General", "StrongThreshold", strong_threshold);
-    bool weak_result = m_config_handler.WriteDouble("General", "WeakThreshold", weak_threshold);
-    bool size_result = m_config_handler.WriteDouble("General", "PositionSize", position_size);
-    bool freq_result = m_config_handler.WriteInteger("General", "UpdateFrequency", update_frequency);
     
-    success = string_result && strong_result && weak_result && size_result && freq_result;
+    LogInfo("Configuration saved successfully with atomic write operation");
     
-    // Log individual operation results
-    LogInfo("Write operation results - SymbolList: " + (string_result ? "SUCCESS" : "FAILED") +
-            ", StrongThreshold: " + (strong_result ? "SUCCESS" : "FAILED") +
-            ", WeakThreshold: " + (weak_result ? "SUCCESS" : "FAILED") +
-            ", PositionSize: " + (size_result ? "SUCCESS" : "FAILED") +
-            ", UpdateFrequency: " + (freq_result ? "SUCCESS" : "FAILED"));
+    // Debug: Read back the file content immediately after writing to verify
+    if(FileIsExist(config_file, FILE_COMMON))
+    {
+        int debug_handle = FileOpen(config_file, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
+        if(debug_handle != INVALID_HANDLE)
+        {
+            string file_content = FileReadString(debug_handle, (int)FileSize(debug_handle));
+            FileClose(debug_handle);
+            LogInfo("DEBUG - Configuration file content after atomic save:");
+            LogInfo(file_content);
+        }
+        else
+        {
+            int error_code = GetLastError();
+            LogError("DEBUG - Failed to read back config file: " + config_file + " (Error " + IntegerToString(error_code) + ")");
+        }
+    }
+    else
+    {
+        LogError("DEBUG - Config file doesn't exist after save operation: " + config_file);
+    }
     
     if(success)
     {

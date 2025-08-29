@@ -6,8 +6,8 @@
 #ifndef CCONFIGHANDLER_MQH
 #define CCONFIGHANDLER_MQH
 
-// MQL5 standard includes - built-in functions are available by default
-// No additional includes needed for basic file operations
+// MQL5 standard includes
+#include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
 //| Simplified configuration handler using MQL5 native file functions|
@@ -80,16 +80,31 @@ bool CConfigHandler::WriteString(string section, string key, string value)
     string formatted_key = FormatKey(section, key);
     string line_to_write = formatted_key + "=" + value;
     
+    Print("[DEBUG] WriteString called - Section: " + section + ", Key: " + key + ", Value: " + value);
+    Print("[DEBUG] Formatted key: " + formatted_key);
+    Print("[DEBUG] Config file path: " + m_config_file_path);
+    
     // Read existing content to preserve other settings
     string current_content = "";
     if(FileIsExist(m_config_file_path, FILE_COMMON))
     {
+        Print("[DEBUG] Config file exists, reading current content");
         int file_handle = FileOpen(m_config_file_path, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
         if(file_handle != INVALID_HANDLE)
         {
             current_content = FileReadString(file_handle, (int)FileSize(file_handle));
             FileClose(file_handle);
+            Print("[DEBUG] Current file content: " + current_content);
         }
+        else
+        {
+            int error_code = GetLastError();
+            Print("[DEBUG] Failed to open file for reading (Error " + IntegerToString(error_code) + ")");
+        }
+    }
+    else
+    {
+        Print("[DEBUG] Config file does not exist, will create new");
     }
     
     // Parse and update content - simple line-by-line replacement
@@ -97,6 +112,8 @@ bool CConfigHandler::WriteString(string section, string key, string value)
     int line_count = StringSplit(current_content, '\n', lines);
     bool key_found = false;
     string new_content = "";
+    
+    Print("[DEBUG] Processing " + IntegerToString(line_count) + " lines from current content");
     
     for(int i = 0; i < line_count; i++)
     {
@@ -118,9 +135,12 @@ bool CConfigHandler::WriteString(string section, string key, string value)
             string current_key = StringSubstr(line, 0, separator_pos);
             StringTrimRight(current_key);
             
+            Print("[DEBUG] Checking line: " + line + ", Current key: " + current_key);
+            
             if(current_key == formatted_key)
             {
                 // Replace existing key
+                Print("[DEBUG] Key found, replacing with: " + line_to_write);
                 new_content += line_to_write + "\n";
                 key_found = true;
             }
@@ -140,8 +160,11 @@ bool CConfigHandler::WriteString(string section, string key, string value)
     // Add new key if not found
     if(!key_found)
     {
+        Print("[DEBUG] Key not found, adding new: " + line_to_write);
         new_content += line_to_write + "\n";
     }
+    
+    Print("[DEBUG] Final content to write: " + new_content);
     
     // Write updated content
     int file_handle = FileOpen(m_config_file_path, FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
@@ -163,6 +186,7 @@ bool CConfigHandler::WriteString(string section, string key, string value)
     }
     
     FileClose(file_handle);
+    Print("[DEBUG] WriteString completed successfully for key: " + formatted_key);
     return true;
 }
 
@@ -173,6 +197,7 @@ string CConfigHandler::ReadString(string section, string key, string default_val
 {
     if(m_config_file_path == "" || !FileIsExist(m_config_file_path, FILE_COMMON))
     {
+        Print("[DEBUG] Config file doesn't exist or path not set, returning default: " + default_value);
         return default_value;
     }
     
@@ -211,12 +236,14 @@ string CConfigHandler::ReadString(string section, string key, string default_val
                 string value = StringSubstr(line, separator_pos + 1);
                 StringTrimLeft(value);
                 FileClose(file_handle);
+                Print("[DEBUG] ReadString found key: " + formatted_key + " = " + value);
                 return value;
             }
         }
     }
     
     FileClose(file_handle);
+    Print("[DEBUG] ReadString key not found: " + formatted_key + ", returning default: " + default_value);
     return default_value;
 }
 
@@ -247,7 +274,9 @@ int CConfigHandler::ReadInteger(string section, string key, int default_value)
 //+------------------------------------------------------------------+
 bool CConfigHandler::WriteDouble(string section, string key, double value)
 {
-    return WriteString(section, key, DoubleToString(value));
+    string string_value = DoubleToString(value);
+    Print("[DEBUG] WriteDouble called - Section: " + section + ", Key: " + key + ", Value: " + string_value);
+    return WriteString(section, key, string_value);
 }
 
 //+------------------------------------------------------------------+
