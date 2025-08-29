@@ -173,6 +173,13 @@ void ForceReloadConfiguration()
     double config_position_size;
     int config_update_frequency;
     
+    // Store current values for potential rollback
+    string current_symbol_list = SymbolList;
+    double current_strong_threshold = StrongThreshold;
+    double current_weak_threshold = WeakThreshold;
+    double current_position_size = PositionSize;
+    int current_update_frequency = UpdateFrequency;
+    
     Print("Manual configuration reload initiated...");
     
     // Reload configuration from file
@@ -181,11 +188,12 @@ void ForceReloadConfiguration()
                                      config_update_frequency))
     {
         // Validate the reloaded parameters
-        if(ValidateInputParameters(config_symbol_list, config_strong_threshold,
-                                 config_weak_threshold, config_position_size,
-                                 config_update_frequency))
+        if(ValidateConfigurationChanges(current_symbol_list, current_strong_threshold, current_weak_threshold,
+                                      current_position_size, current_update_frequency,
+                                      config_symbol_list, config_strong_threshold, config_weak_threshold,
+                                      config_position_size, config_update_frequency))
         {
-            Print("Configuration reloaded successfully:");
+            Print("Configuration reloaded and validated successfully:");
             Print("SymbolList: " + config_symbol_list);
             Print("StrongThreshold: " + DoubleToString(config_strong_threshold, 2));
             Print("WeakThreshold: " + DoubleToString(config_weak_threshold, 2));
@@ -197,13 +205,82 @@ void ForceReloadConfiguration()
         }
         else
         {
-            Print("ERROR: Reloaded configuration failed validation");
+            Print("ERROR: Reloaded configuration failed validation - rolling back to previous values");
+            // Rollback to previous values
+            SymbolList = current_symbol_list;
+            StrongThreshold = current_strong_threshold;
+            WeakThreshold = current_weak_threshold;
+            PositionSize = current_position_size;
+            UpdateFrequency = current_update_frequency;
         }
     }
     else
     {
         Print("ERROR: Failed to reload configuration from file");
     }
+}
+
+//+------------------------------------------------------------------+
+//| Validate configuration changes and compare with current values   |
+//+------------------------------------------------------------------+
+bool ValidateConfigurationChanges(string current_symbol_list, double current_strong_threshold,
+                                 double current_weak_threshold, double current_position_size,
+                                 int current_update_frequency,
+                                 string new_symbol_list, double new_strong_threshold,
+                                 double new_weak_threshold, double new_position_size,
+                                 int new_update_frequency)
+{
+    // First validate the new parameters using the existing validation
+    if(!ValidateInputParameters(new_symbol_list, new_strong_threshold, new_weak_threshold,
+                              new_position_size, new_update_frequency))
+    {
+        Print("ERROR: New configuration parameters failed basic validation");
+        return false;
+    }
+    
+    // Compare with current values and log changes
+    bool changes_detected = false;
+    
+    if(new_symbol_list != current_symbol_list)
+    {
+        Print("SymbolList changed: " + current_symbol_list + " -> " + new_symbol_list);
+        changes_detected = true;
+    }
+    
+    if(new_strong_threshold != current_strong_threshold)
+    {
+        Print("StrongThreshold changed: " + DoubleToString(current_strong_threshold, 2) + 
+              " -> " + DoubleToString(new_strong_threshold, 2));
+        changes_detected = true;
+    }
+    
+    if(new_weak_threshold != current_weak_threshold)
+    {
+        Print("WeakThreshold changed: " + DoubleToString(current_weak_threshold, 2) + 
+              " -> " + DoubleToString(new_weak_threshold, 2));
+        changes_detected = true;
+    }
+    
+    if(new_position_size != current_position_size)
+    {
+        Print("PositionSize changed: " + DoubleToString(current_position_size, 2) + 
+              " -> " + DoubleToString(new_position_size, 2));
+        changes_detected = true;
+    }
+    
+    if(new_update_frequency != current_update_frequency)
+    {
+        Print("UpdateFrequency changed: " + IntegerToString(current_update_frequency) + 
+              " -> " + IntegerToString(new_update_frequency));
+        changes_detected = true;
+    }
+    
+    if(!changes_detected)
+    {
+        Print("Configuration reloaded but no changes detected - values identical to current configuration");
+    }
+    
+    return true;
 }
 
 //+------------------------------------------------------------------+
