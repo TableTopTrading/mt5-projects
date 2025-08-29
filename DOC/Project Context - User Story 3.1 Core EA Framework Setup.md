@@ -110,16 +110,36 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- Uses existing error handling framework with descriptive error messages
 	- Graceful degradation - prevents EA initialization with invalid parameters
 	- Comprehensive error reporting for all validation failures
-## Testing Ready
 
-The implementation is ready for testing with:
-
-- Valid parameter combinations (should initialize successfully)
-- Invalid parameters (empty SymbolList, out-of-range thresholds, negative PositionSize)
-- Boundary cases (0.0, 1.0 thresholds, minimum UpdateFrequency)
-
-The enhanced logging will provide a complete audit trail of all initialization parameters and validation status, meeting the reliability and audit requirements of Sprint 2.
-
+#### Sprint 2.6 - Configuration File Support for the Equity Curve Signal EA. Here's what was accomplished:
+1. __CIniFile Library Integration__: Integrated Batohov's CIniFile class for robust INI file handling using Windows API calls
+2. __Configuration Management Methods__: Added to CEquityCurveController:
+   - `LoadConfiguration()` - Loads parameters from INI file with default fallbacks
+   - `SaveConfiguration()` - Saves current settings to INI file
+   - `ReloadConfiguration()` - Reloads configuration without EA restart
+3. __Configuration Priority Strategy__: EA loads parameters in this order:
+   - Configuration file values (if exists and valid)
+   - EA input parameters (fallback)
+   - Hardcoded defaults (safety net)
+4. __Configuration File Structure__: Uses standard INI format:
+   ```ini
+   [General]
+   SymbolList=EURUSD,GBPUSD,USDJPY
+   StrongThreshold=0.7
+   WeakThreshold=0.3
+   PositionSize=0.1
+   UpdateFrequency=60
+   ```
+5. __Enhanced Error Handling__: Comprehensive error reporting for configuration operations with integration into existing logging system
+6. __Testing Infrastructure__: Created comprehensive test script (`Test_Configuration.mq5`) to verify all configuration functionality
 
 ---
-### Current Task -  Sprint 2.
+### Current Task -  Sprint 2.7: Live Configuration Reload
+- __Objective:__ Implement live configuration reload functionality
+- __Activities:__
+- [ ] Add file modification timestamp checking for automatic reload detection
+- [ ] Implement manual reload trigger functionality
+- [ ] Add configuration change validation before applying
+- [ ] Ensure thread-safe configuration updates
+- [ ] Test live reload functionality
+- [ ] Update documentation with reload instructions
