@@ -27,11 +27,6 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	   - Resolved compilation issues with placeholder code
 	   - The AccountInfoInteger calls in ValidateAccountType() are now fully functional
 4. __Memory Bank Updated__: Enhanced the technical design documentation with details of the Sprint 2.1 enhancements, including implementation status and next steps enabled by the standard includes integration.
-##### Key Enhancements
-- __Account Validation__: Now fully functional with proper access to account type detection
-- __New Bar Detection__: Proper implementation using standard library functions
-- __Architecture Readiness__: Foundation laid for future components (CTradeManager, CPositionTracker, file operations)
-- __Clean Codebase__: All compilation warnings and placeholder issues resolved
 #### Sprint 2.2: Directory Creation Implementation for the Equity Curve Signal EA. 
 1. __Files/File.mqh Integration__: This was not required and instead used mql5 built in functions.
 2. __Directory Creation Implementation__: Completely rewrote the `SetupDirectories()` method to actually create directories instead of just setting path strings
@@ -95,6 +90,36 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- Enhanced logging with detailed error context and descriptive messages
 	- Maintained robust fallback mechanisms to Print() when file logging fails
 	- All file operation errors now include file paths and operation details
+#### Sprint 2.5 - Parameter Validation and Logging for the Equity Curve Signal EA. Here's what was accomplished:
+1. Comprehensive Parameter Validation
+	- Added `ValidateInputParameters()` function that validates:
+		- __SymbolList__: Format validation, empty checks, and symbol existence verification using `SymbolInfoInteger(symbol, SYMBOL_SELECT)`
+		- __StrongThreshold/WeakThreshold__: Range validation (0.0-1.0) and logical validation (StrongThreshold > WeakThreshold)
+		- __PositionSize__: Positive value validation
+		- __UpdateFrequency__: Minimum reasonable value (≥1 second)
+2. Enhanced LogInitializationParameters()
+	- Updated the controller method to accept and log all EA input parameters:
+		- Now includes SymbolList, StrongThreshold, WeakThreshold, PositionSize, and UpdateFrequency in the log output
+		- Maintains comprehensive system configuration logging
+		- Includes validation status reporting for account, directories, and logging
+3. Integration with Existing Framework
+	- Parameter validation occurs early in `OnInit()` before any other initialization
+	- Validation failures return `INIT_FAILED` with descriptive error messages
+	- Successful validation triggers enhanced parameter logging
+4. Error Handling
+	- Uses existing error handling framework with descriptive error messages
+	- Graceful degradation - prevents EA initialization with invalid parameters
+	- Comprehensive error reporting for all validation failures
+## Testing Ready
+
+The implementation is ready for testing with:
+
+- Valid parameter combinations (should initialize successfully)
+- Invalid parameters (empty SymbolList, out-of-range thresholds, negative PositionSize)
+- Boundary cases (0.0, 1.0 thresholds, minimum UpdateFrequency)
+
+The enhanced logging will provide a complete audit trail of all initialization parameters and validation status, meeting the reliability and audit requirements of Sprint 2.
+
 
 ---
-### Current Task -  Sprint 2.5
+### Current Task -  Sprint 2.

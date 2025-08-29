@@ -49,6 +49,13 @@ input int UpdateFrequency = 60; // seconds
 //+------------------------------------------------------------------+
 int OnInit()
 {
+    // Validate input parameters first
+    if(!ValidateInputParameters())
+    {
+        Print("Input parameter validation failed");
+        return INIT_FAILED;
+    }
+    
     // Initialize controller (handles account validation, directories, logging)
     if(!controller.Initialize())
     {
@@ -62,6 +69,9 @@ int OnInit()
         Print("Failed to initialize Data Manager");
         return INIT_FAILED;
     }
+    
+    // Log initialization parameters with actual values
+    controller.LogInitializationParameters(SymbolList, StrongThreshold, WeakThreshold, PositionSize, UpdateFrequency);
     
     Print("EquityCurveSignalEA initialized successfully");
     return INIT_SUCCEEDED;
@@ -116,6 +126,84 @@ bool IsNewBar()
     }
     
     return false;
+}
+
+//+------------------------------------------------------------------+
+//| Validate input parameters                                        |
+//+------------------------------------------------------------------+
+bool ValidateInputParameters()
+{
+    // Validate SymbolList format and existence
+    if(StringLen(SymbolList) == 0)
+    {
+        Print("ERROR: SymbolList cannot be empty");
+        return false;
+    }
+    
+    string symbols[];
+    int symbol_count = StringSplit(SymbolList, ',', symbols);
+    
+    if(symbol_count == 0)
+    {
+        Print("ERROR: SymbolList must contain at least one valid symbol");
+        return false;
+    }
+    
+    for(int i = 0; i < symbol_count; i++)
+    {
+        string symbol = StringTrim(symbols[i]);
+        if(StringLen(symbol) == 0)
+        {
+            Print("ERROR: Empty symbol found in SymbolList");
+            return false;
+        }
+        
+        // Check if symbol exists and is selectable
+        if(!SymbolInfoInteger(symbol, SYMBOL_SELECT))
+        {
+            Print("ERROR: Symbol '" + symbol + "' is not available or selectable");
+            return false;
+        }
+    }
+    
+    // Validate StrongThreshold range (0.0-1.0)
+    if(StrongThreshold < 0.0 || StrongThreshold > 1.0)
+    {
+        Print("ERROR: StrongThreshold must be between 0.0 and 1.0, got: " + DoubleToString(StrongThreshold, 2));
+        return false;
+    }
+    
+    // Validate WeakThreshold range (0.0-1.0)
+    if(WeakThreshold < 0.0 || WeakThreshold > 1.0)
+    {
+        Print("ERROR: WeakThreshold must be between 0.0 and 1.0, got: " + DoubleToString(WeakThreshold, 2));
+        return false;
+    }
+    
+    // Validate threshold logic (StrongThreshold should be greater than WeakThreshold)
+    if(StrongThreshold <= WeakThreshold)
+    {
+        Print("ERROR: StrongThreshold (" + DoubleToString(StrongThreshold, 2) + 
+              ") must be greater than WeakThreshold (" + DoubleToString(WeakThreshold, 2) + ")");
+        return false;
+    }
+    
+    // Validate PositionSize (must be positive)
+    if(PositionSize <= 0.0)
+    {
+        Print("ERROR: PositionSize must be positive, got: " + DoubleToString(PositionSize, 2));
+        return false;
+    }
+    
+    // Validate UpdateFrequency (minimum reasonable value)
+    if(UpdateFrequency < 1)
+    {
+        Print("ERROR: UpdateFrequency must be at least 1 second, got: " + IntegerToString(UpdateFrequency));
+        return false;
+    }
+    
+    Print("Input parameter validation passed successfully");
+    return true;
 }
 
 //+------------------------------------------------------------------+
