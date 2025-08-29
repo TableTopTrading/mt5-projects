@@ -17,7 +17,7 @@ Develop an Expert Advisor that generates trading signals based on the SuperSlope
 
 - [x] EA initializes correctly on demo accounts and Strategy Tester
 - [ ] EA validates that it's not running on a live account (safety check)
-- [ ] EA creates necessary file directories for output
+- [x] EA creates necessary file directories for output
 - [x] EA logs all initialization parameters for audit trail
 - [x] EA implements proper cleanup on deinitialization
 
@@ -545,5 +545,5 @@ Basic Trade Monitoring EA
 ---
 ## Notes and Items to review
 ### End of Sprint 1
-- I could not find an actual directory setup on the test environment but think that this is because we will need to add in some includes or library code to do this at a later point in the project 
+- Directories are setup in the common folders rather than specific terminal instance folders.  This needs to be noted in User Guide
 - At some point I will need to check that I get an error when trying to run on a live account

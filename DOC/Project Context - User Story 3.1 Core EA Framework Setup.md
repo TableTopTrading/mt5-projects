@@ -15,7 +15,6 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 
 ### Completed
 #### Sprint 1: Core Framework Foundation
-
 #### Sprint 2.1 Standard Includes Integration and Compilation Fix
 1. __Standard Includes Integration__: Uncommented and integrated all 4 standard MQL5 libraries:
 	   - `<Trade/Trade.mqh>` - For trade execution functionality
@@ -47,6 +46,38 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	   - `EquityCurveSignals\Configuration`
 6. __Helper Function__: Created `CreateDirectoryWithCheck()` utility function that handles existence checks and error reporting
 7. __Memory Bank Updated__: Enhanced technical documentation to reflect the directory management implementation status
+#### Sprint 2.3 
+1. __File Handle Management__: Added private member variables for file handle management including:
+	   - `m_log_file_handle` - File handle for logging operations
+	   - `m_current_log_file` - Current log filename tracking
+	   - `m_max_log_size` - Maximum log file size (10MB) for rotation
+2. __Enhanced ConfigureLogging() Method__:
+	   - Creates timestamped log files (EquityCurve_YYYYMMDD.log)
+	   - Writes comprehensive log headers with account information
+	   - Implements proper error handling for file operations
+	   - Uses FILE_COMMON flag for shared access across terminals
+3. __File-Based Logging Methods__:
+	   - Updated LogInfo(), LogWarning(), LogError() to write to files
+	   - Added precise timestamping with millisecond precision
+	   - Maintains fallback to Print() for error conditions
+	   - Includes automatic log rotation checks before each write
+4. __Log Rotation System__:
+	   - Size-based rotation (10MB maximum file size)
+	   - Automatic file closure and renaming with timestamps
+	   - Seamless recreation of new log files after rotation
+	   - Comprehensive error reporting for rotation failures
+5. __Enhanced Cleanup() Method__:
+	   - Proper file handle closure with error checking
+	   - Resource cleanup and state reset
+	   - Comprehensive logging of cleanup operations
+6. __Utility Methods__:
+	   - CreateDirectoryWithCheck() for robust directory creation
+	   - CheckLogRotation() for automatic file management
+	   - Enhanced LogInitializationParameters() with detailed system info
+7. __Testing Infrastructure__:
+	   - Created Test_File_Logging.mq5 script for verification
+	   - Comprehensive test coverage for all log types
+	   - Multiple message generation to test rotation logic
 
 ---
 ### Current Task - Sprint 2.3: File-Based Logging Implementation
