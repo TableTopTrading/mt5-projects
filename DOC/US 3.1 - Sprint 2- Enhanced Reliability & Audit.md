@@ -39,14 +39,14 @@ __Dependencies:__ Sprint 2.1 completed (standard includes integrated)
 ### Sprint 2.3: File-Based Logging Implementation
 - __Objective:__ Replace Print statements with actual file-based logging 
 - __Activities:__
-- [ ] Implement file handle management in CEquityCurveController
-- [ ] Modify ConfigureLogging() to create and open log files
-- [ ] Update LogInfo(), LogWarning(), LogError() methods to write to files
-- [ ] Implement log rotation based on file size or time
-- [ ] Add timestamping to all log entries
-- [ ] Ensure proper file closing in Cleanup() method
-- [ ] Test logging functionality with various message types
-- [ ] Verify log files are created in the correct directory
+- [x] Implement file handle management in CEquityCurveController
+- [x] Modify ConfigureLogging() to create and open log files
+- [x] Update LogInfo(), LogWarning(), LogError() methods to write to files
+- [x] Implement log rotation based on file size or time
+- [x] Add timestamping to all log entries
+- [x] Ensure proper file closing in Cleanup() method
+- [x] Test logging functionality with various message types
+- [x] Verify log files are created in the correct directory
 
 __Dependencies:__ Sprint 2.2 completed (directories created)
 

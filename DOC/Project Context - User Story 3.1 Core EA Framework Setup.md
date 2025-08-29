@@ -80,14 +80,13 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	   - Multiple message generation to test rotation logic
 
 ---
-### Current Task - Sprint 2.3: File-Based Logging Implementation
-- __Objective:__ Replace Print statements with actual file-based logging 
+### Current Task -  Sprint 2.4: Comprehensive Error Handling
+- __Objective:__ Implement robust error handling throughout the codebase 
 - __Activities:__
-- [ ] Implement file handle management in CEquityCurveController
-- [ ] Modify ConfigureLogging() to create and open log files
-- [ ] Update LogInfo(), LogWarning(), LogError() methods to write to files
-- [ ] Implement log rotation based on file size or time
-- [ ] Add timestamping to all log entries
-- [ ] Ensure proper file closing in Cleanup() method
-- [ ] Test logging functionality with various message types
-- [ ] Verify log files are created in the correct directory
+- [ ] Add error code definitions and consistent error reporting format
+- [ ] Implement try-catch mechanisms where appropriate for file operations
+- [ ] Enhance method return types to include error status
+- [ ] Add input parameter validation for all public methods
+- [ ] Create centralized error handling routines
+- [ ] Ensure all errors are logged with appropriate severity levels
+- [ ] Test error conditions to verify proper handling and reporting

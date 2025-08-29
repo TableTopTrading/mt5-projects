@@ -9,7 +9,7 @@
 #property script_show_inputs
 
 // Include the controller
-#include <MyProjects/EquityCurve/CEquityCurveController.mqh>
+#include <MyProjects\EquityCurve\CEquityCurveController.mqh> //updated to crrect path
 
 //+------------------------------------------------------------------+
 //| Script program start function                                    |

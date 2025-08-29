@@ -254,10 +254,10 @@ bool CEquityCurveController::CheckLogRotation(void)
         return false;
     
     // Check current file size
-    long current_size = FileSize(m_log_file_handle);
-    if(current_size >= m_max_log_size)
+    ulong current_size = FileSize(m_log_file_handle);
+    if(current_size >= (ulong)m_max_log_size)
     {
-        LogInfo("Log file size (" + IntegerToString(current_size) + " bytes) exceeds maximum (" + IntegerToString(m_max_log_size) + " bytes). Rotating log file.");
+        LogInfo("Log file size (" + IntegerToString((long)current_size) + " bytes) exceeds maximum (" + IntegerToString(m_max_log_size) + " bytes). Rotating log file.");
         
         // Close current file
         FileClose(m_log_file_handle);
@@ -265,9 +265,12 @@ bool CEquityCurveController::CheckLogRotation(void)
         
         // Create rotated filename with timestamp
         datetime rotate_time = TimeCurrent();
+        MqlDateTime mql_time;
+        TimeToStruct(rotate_time, mql_time);
+        
         string rotated_filename = m_log_path + "EquityCurve_" + 
                                  TimeToString(rotate_time, TIME_DATE) + "_" +
-                                 IntegerToString(TimeHour(rotate_time)) + IntegerToString(TimeMinute(rotate_time)) +
+                                 IntegerToString(mql_time.hour) + IntegerToString(mql_time.min) +
                                  ".log";
         
         // Rename current file

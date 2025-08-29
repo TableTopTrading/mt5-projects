@@ -399,13 +399,17 @@ bool CRiskManager::CheckIndividualRisk(string symbol, double entry_price, double
 #### Purpose
 Manage Equity Curve EA initialization, setup, and resource management including account validation, directory setup, and logging configuration.
 
-#### Class Definition
+#### Class Definition (Sprint 2.3 - Enhanced)
 ```mql5
 class CEquityCurveController {
 private:
     bool            m_initialized;      // Flag indicating if controller is initialized
     string          m_log_path;         // Path for log files
     string          m_output_path;      // Path for output files (CSV, etc.)
+    string          m_config_path;      // Path for configuration files
+    int             m_log_file_handle;  // File handle for logging
+    string          m_current_log_file; // Current log filename
+    long            m_max_log_size;     // Maximum log file size in bytes (10MB)
     
 public:
     //--- Constructor and destructor
@@ -417,12 +421,23 @@ public:
     bool              ValidateAccountType(void);
     bool              SetupDirectories(void);
     bool              ConfigureLogging(void);
+    bool              CheckLogRotation(void);
     void              Cleanup(void);
+    
+    //--- Logging methods
+    void              LogInfo(string message);
+    void              LogWarning(string message);
+    void              LogError(string message);
+    void              LogInitializationParameters(void);
+    
+    //--- Utility methods
+    bool              CreateDirectoryWithCheck(string path);
     
     //--- Getter methods
     bool              IsInitialized(void) const { return m_initialized; }
     string            GetLogPath(void) const { return m_log_path; }
     string            GetOutputPath(void) const { return m_output_path; }
+    string            GetConfigPath(void) const { return m_config_path; }
 };
 ```
 
@@ -434,14 +449,16 @@ The ValidateAccountType() method implements strict account type restrictions:
 - **Safety**: Prevents accidental execution on unauthorized account types
 - **Status**: ✅ IMPLEMENTED - Standard includes integrated for AccountInfo functionality
 
-#### Logging Framework
-The controller includes a comprehensive logging system with:
-- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing
-- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log)
-- **Initialization Logging**: LogInitializationParameters() method for recording startup configuration
+#### Logging Framework (Sprint 2.3 - Enhanced)
+The controller includes a comprehensive file-based logging system with:
+- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing and timestamping
+- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log) with automatic rotation
+- **Log Rotation**: 10MB maximum file size with automatic rotation and archival
+- **Timestamp Format**: Precise timestamps with millisecond precision [YYYY-MM-DD HH:MM:SS.mmm]
+- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration
 - **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
-- **Audit Trail**: Comprehensive logging for security and debugging purposes
-- **Status**: ✅ STANDARD INCLUDES INTEGRATED - Ready for full file operations implementation
+- **Audit Trail**: Comprehensive logging for security, debugging, and compliance purposes
+- **Status**: ✅ IMPLEMENTED - Full file-based logging with rotation and error handling
 
 #### Directory Management System
 The controller manages a comprehensive directory structure:
