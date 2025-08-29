@@ -205,13 +205,10 @@ void ForceReloadConfiguration()
         }
         else
         {
-            Print("ERROR: Reloaded configuration failed validation - rolling back to previous values");
-            // Rollback to previous values
-            SymbolList = current_symbol_list;
-            StrongThreshold = current_strong_threshold;
-            WeakThreshold = current_weak_threshold;
-            PositionSize = current_position_size;
-            UpdateFrequency = current_update_frequency;
+            Print("ERROR: Reloaded configuration failed validation - configuration not applied");
+            // Note: Input parameters cannot be modified at runtime in MQL5.
+            // The reloaded configuration will not be applied to the running EA.
+            // Users must restart the EA to apply configuration changes from file.
         }
     }
     else

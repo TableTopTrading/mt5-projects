@@ -156,16 +156,37 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 	- All reload operations are logged with timestamps and detailed messages
 	- Validation failures are clearly reported with specific error messages
 	- Success messages include the reloaded parameter values for verification
+9. Enhanced Validation System
+	- The existing `ValidateInputParameters()` method remains as the core validation logic
+	- Added comprehensive parameter comparison and change detection in the new validation system
+10. Added ValidateConfigurationChanges() Method
+	- __Comprehensive Comparison__: Compares current vs new parameter values in detail
+	- __Change Detection__: Logs specific changes for each parameter that gets modified
+	- __Basic Validation__: Leverages the existing `ValidateInputParameters()` for fundamental validation
+	- __Detailed Logging__: Provides clear messages about what changed and what remained the same
+11. Implemented Robust Rollback Mechanism
+	- __State Preservation__: Stores current parameter values before attempting reload
+	- __Automatic Rollback__: If validation fails, automatically reverts to previous values
+	- __Error Reporting__: Clear error messages indicate when rollback occurs and why
+	- __Data Integrity__: Ensures the EA never operates with invalid configuration values
+12. Enhanced ForceReloadConfiguration() Method
+	- __State Management__: Now properly stores current values before reload attempts
+	- __Integrated Validation__: Uses the new validation system before applying changes
+	- __Rollback Integration__: Seamlessly integrates with the rollback mechanism
+	- __Comprehensive Logging__: Detailed progress reporting throughout the reload process
+##### Validation Process Flow
+1. __Store Current State__: Preserve all current parameter values
+2. __Reload from File__: Attempt to load new configuration from file
+3. __Basic Validation__: Validate new parameters meet fundamental requirements
+4. __Change Comparison__: Compare new values with current values and log changes
+5. __Apply or Rollback__: Apply new values if valid, or rollback to previous values if invalid
+6. __Report Results__: Provide detailed feedback about the operation outcome
 
 
 ---
 ### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
 
-### 3. Configuration Validation Before Apply
 
-- Enhance the existing `ValidateInputParameters()` method to handle validation of new values
-- Add a method `ValidateConfigurationChanges()` that compares old vs new values and checks for validity
-- Implement rollback mechanism if new configuration is invalid
 
 ### 4. Thread-Safe Updates
 
