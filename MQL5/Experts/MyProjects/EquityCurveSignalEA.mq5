@@ -151,7 +151,11 @@ bool ValidateInputParameters()
     
     for(int i = 0; i < symbol_count; i++)
     {
-        string symbol = StringTrim(symbols[i]);
+        string symbol = symbols[i];
+        // Remove any whitespace around the symbol
+        StringTrimLeft(symbol);
+        StringTrimRight(symbol);
+        
         if(StringLen(symbol) == 0)
         {
             Print("ERROR: Empty symbol found in SymbolList");

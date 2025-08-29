@@ -399,7 +399,7 @@ bool CRiskManager::CheckIndividualRisk(string symbol, double entry_price, double
 #### Purpose
 Manage Equity Curve EA initialization, setup, and resource management including account validation, directory setup, and logging configuration.
 
-#### Class Definition (Sprint 2.3 - Enhanced)
+#### Class Definition (Sprint 2.5 - Enhanced with Parameter Logging)
 ```mql5
 class CEquityCurveController {
 private:
@@ -428,7 +428,9 @@ public:
     void              LogInfo(string message);
     void              LogWarning(string message);
     void              LogError(string message);
-    void              LogInitializationParameters(void);
+    void              LogInitializationParameters(string symbol_list, double strong_threshold, 
+                                                 double weak_threshold, double position_size, 
+                                                 int update_frequency);
     
     //--- Utility methods
     bool              CreateDirectoryWithCheck(string path);
@@ -455,7 +457,7 @@ The controller includes a comprehensive file-based logging system with:
 - **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log) with automatic rotation
 - **Log Rotation**: 10MB maximum file size with automatic rotation and archival
 - **Timestamp Format**: Precise timestamps with millisecond precision [YYYY-MM-DD HH:MM:SS.mmm]
-- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration
+- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration and parameter logging
 - **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
 - **Audit Trail**: Comprehensive logging for security, debugging, and compliance purposes
 - **Status**: ✅ IMPLEMENTED - Full file-based logging with rotation and error handling
@@ -489,11 +491,13 @@ The controller manages a comprehensive directory structure:
 - ✅ **Input Validation**: Added parameter validation to all public methods
 - ✅ **Null/Empty Checks**: Validation for NULL and empty string parameters
 - ✅ **Graceful Degradation**: Methods return false or skip operations instead of crashing
+- ✅ **EA Input Validation**: Comprehensive validation for SymbolList, StrongThreshold, WeakThreshold, PositionSize, and UpdateFrequency parameters
 
 #### 4. Error Logging Improvements
 - ✅ **Descriptive Logging**: Enhanced logging with detailed error context
 - ✅ **Fallback Mechanisms**: Robust fallback to Print() when file logging fails
 - ✅ **Error Context**: All file operation errors include file paths and operation details
+- ✅ **Parameter Logging**: Enhanced LogInitializationParameters() now logs all EA input parameters with values
 
 ### Technical Implementation Details
 
