@@ -14,7 +14,7 @@
 
 // Project includes
 // #include <Files/File.mqh>  // Not needed - using MQL5 built-in functions
-#include "inifile.mqh"  // Configuration file support (Sprint 2.6)
+#include "CConfigHandler.mqh"  // Custom configuration handler (replaces inifile.mqh)
 
 // Error handling utilities
 #define ERROR_SUCCESS 0
@@ -138,7 +138,7 @@ private:
     int             m_log_file_handle;  // File handle for logging
     string          m_current_log_file; // Current log filename
     long            m_max_log_size;     // Maximum log file size in bytes (10MB)
-    CIniFile        m_config_file;      // Configuration file handler (Sprint 2.6)
+    CConfigHandler  m_config_handler;   // Custom configuration handler (replaces CIniFile)
     datetime        m_last_config_modify_time; // Last known modification time of config file (Sprint 2.7)
     
 public:
@@ -164,6 +164,7 @@ public:
     
     //--- Utility methods
     bool              CreateDirectoryWithCheck(string path);
+    string            GetFullConfigPath(string relative_path);
     
     //--- Configuration methods (Sprint 2.6)
     bool              LoadConfiguration(string &symbol_list, double &strong_threshold, 
@@ -574,6 +575,23 @@ void CEquityCurveController::LogInitializationParameters(string symbol_list, dou
 }
 
 //+------------------------------------------------------------------+
+//| Get full absolute path for configuration file                    |
+//+------------------------------------------------------------------+
+string CEquityCurveController::GetFullConfigPath(string relative_path)
+{
+    // Get terminal common data path (where shared files are stored)
+    string terminal_common_path = TerminalInfoString(TERMINAL_COMMONDATA_PATH);
+    
+    // Construct full path: terminal_common_path + Files\ + relative_path
+    string full_path = terminal_common_path + "\\Files\\" + relative_path;
+    
+    // Replace any double backslashes that might occur
+    StringReplace(full_path, "\\\\", "\\");
+    
+    return full_path;
+}
+
+//+------------------------------------------------------------------+
 //| Cleanup resources                                                |
 //+------------------------------------------------------------------+
 void CEquityCurveController::Cleanup(void)
@@ -596,25 +614,25 @@ void CEquityCurveController::Cleanup(void)
 }
 
 //+------------------------------------------------------------------+
-//| Load configuration from INI file                                 |
+//| Load configuration from file                                     |
 //+------------------------------------------------------------------+
 bool CEquityCurveController::LoadConfiguration(string &symbol_list, double &strong_threshold, 
                                               double &weak_threshold, double &position_size, 
                                               int &update_frequency)
 {
-    string config_file = m_config_path + "EquityCurveConfig.ini";
+    string config_file = GetFullConfigPath(m_config_path + "EquityCurveConfig.ini");
     
     // Initialize configuration file handler
-    m_config_file.Init(config_file);
+    m_config_handler.Init(config_file);
     
     LogInfo("Loading configuration from: " + config_file);
     
-    // Load parameters with default values
-    symbol_list = m_config_file.ReadString("General", "SymbolList", "EURUSD,GBPUSD,USDJPY");
-    strong_threshold = m_config_file.ReadFloat("General", "StrongThreshold", 0.7);
-    weak_threshold = m_config_file.ReadFloat("General", "WeakThreshold", 0.3);
-    position_size = m_config_file.ReadFloat("General", "PositionSize", 0.1);
-    update_frequency = (int)m_config_file.ReadInteger("General", "UpdateFrequency", 60);
+    // Load parameters with default values using new handler
+    symbol_list = m_config_handler.ReadString("General", "SymbolList", "EURUSD,GBPUSD,USDJPY");
+    strong_threshold = m_config_handler.ReadDouble("General", "StrongThreshold", 0.7);
+    weak_threshold = m_config_handler.ReadDouble("General", "WeakThreshold", 0.3);
+    position_size = m_config_handler.ReadDouble("General", "PositionSize", 0.1);
+    update_frequency = m_config_handler.ReadInteger("General", "UpdateFrequency", 60);
     
     // Log loaded configuration
     LogInfo("Configuration loaded - SymbolList: " + symbol_list + 
@@ -627,34 +645,78 @@ bool CEquityCurveController::LoadConfiguration(string &symbol_list, double &stro
 }
 
 //+------------------------------------------------------------------+
-//| Save configuration to INI file                                   |
+//| Save configuration to file                                       |
 //+------------------------------------------------------------------+
 bool CEquityCurveController::SaveConfiguration(string symbol_list, double strong_threshold, 
                                               double weak_threshold, double position_size, 
                                               int update_frequency)
 {
-    string config_file = m_config_path + "EquityCurveConfig.ini";
+    string config_file = GetFullConfigPath(m_config_path + "EquityCurveConfig.ini");
     
     // Initialize configuration file handler
-    m_config_file.Init(config_file);
+    m_config_handler.Init(config_file);
     
     LogInfo("Saving configuration to: " + config_file);
+    LogInfo("Values to save - SymbolList: " + symbol_list + 
+            ", StrongThreshold: " + DoubleToString(strong_threshold, 2) +
+            ", WeakThreshold: " + DoubleToString(weak_threshold, 2) +
+            ", PositionSize: " + DoubleToString(position_size, 2) +
+            ", UpdateFrequency: " + IntegerToString(update_frequency));
     
-    // Save all parameters
+    // Save all parameters with individual error checking
     bool success = true;
-    success &= m_config_file.WriteString("General", "SymbolList", symbol_list);
-    success &= m_config_file.WriteFloat("General", "StrongThreshold", strong_threshold);
-    success &= m_config_file.WriteFloat("General", "WeakThreshold", weak_threshold);
-    success &= m_config_file.WriteFloat("General", "PositionSize", position_size);
-    success &= m_config_file.WriteInteger("General", "UpdateFrequency", update_frequency);
+    bool string_result = m_config_handler.WriteString("General", "SymbolList", symbol_list);
+    bool strong_result = m_config_handler.WriteDouble("General", "StrongThreshold", strong_threshold);
+    bool weak_result = m_config_handler.WriteDouble("General", "WeakThreshold", weak_threshold);
+    bool size_result = m_config_handler.WriteDouble("General", "PositionSize", position_size);
+    bool freq_result = m_config_handler.WriteInteger("General", "UpdateFrequency", update_frequency);
+    
+    success = string_result && strong_result && weak_result && size_result && freq_result;
+    
+    // Log individual operation results
+    LogInfo("Write operation results - SymbolList: " + (string_result ? "SUCCESS" : "FAILED") +
+            ", StrongThreshold: " + (strong_result ? "SUCCESS" : "FAILED") +
+            ", WeakThreshold: " + (weak_result ? "SUCCESS" : "FAILED") +
+            ", PositionSize: " + (size_result ? "SUCCESS" : "FAILED") +
+            ", UpdateFrequency: " + (freq_result ? "SUCCESS" : "FAILED"));
     
     if(success)
     {
         LogInfo("Configuration saved successfully");
+        
+    // Verify file was actually created
+    if(FileIsExist(config_file, FILE_COMMON))
+    {
+        LogInfo("Configuration file verified to exist: " + config_file);
+        
+        // Additional verification - try to read back the file
+        int test_handle = FileOpen(config_file, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
+        if(test_handle != INVALID_HANDLE)
+        {
+            string file_content = FileReadString(test_handle, (int)FileSize(test_handle));
+            FileClose(test_handle);
+            LogInfo("Configuration file content preview: " + StringSubstr(file_content, 0, 200) + "...");
+        }
+    }
+    else
+    {
+        LogError("Configuration file does not exist after save operation: " + config_file);
+        success = false;
+        
+        // Check if directory exists
+        string directory = StringSubstr(config_file, 0, StringLen(config_file) - StringLen("EquityCurveConfig.ini"));
+        if(!FolderCreate(directory, FILE_COMMON))
+        {
+            int error_code = GetLastError();
+            LogError("Failed to create configuration directory: " + directory + " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
+        }
+    }
     }
     else
     {
         LogError("Failed to save configuration to: " + config_file);
+        int error_code = GetLastError();
+        LogError("Last error code: " + IntegerToString(error_code) + " - " + GetErrorDescription(error_code));
     }
     
     return success;
@@ -676,7 +738,7 @@ bool CEquityCurveController::ReloadConfiguration(string &symbol_list, double &st
 //+------------------------------------------------------------------+
 bool CEquityCurveController::CheckConfigFileModified(void)
 {
-    string config_file = m_config_path + "EquityCurveConfig.ini";
+    string config_file = GetFullConfigPath(m_config_path + "EquityCurveConfig.ini");
     
     // Check if file exists
     if(!FileIsExist(config_file, FILE_COMMON))

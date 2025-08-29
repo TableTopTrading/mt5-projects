@@ -226,18 +226,47 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 				  - Weak threshold > Strong threshold (should fail)
 				  - Negative position size (should fail)
 				  - Invalid update frequency (should fail)
+Hit a snag in testing - and have had to remove the .ini file manager that I found in the code library
+##### Root Cause Identified
+
+The original CIniFile class was failing because it relied on Windows API functions (`WritePrivateProfileStringW`/`GetPrivateProfileStringW`) that have compatibility issues within MetaTrader's sandboxed environment.
+
+##### Solution Implemented
+
+1. Created Custom Configuration Handler (CConfigHandler.mqh)
+	- __Native MQL5 Implementation__: Uses MQL5's built-in file functions (`FileOpen`, `FileWrite`, `FileRead`) instead of Windows API
+	- __Full Feature Parity__: Supports all the same operations as CIniFile (Read/Write String, Integer, Double, Bool)
+	- __Enhanced Reliability__: Works within MetaTrader's file system constraints
+	- __Better Error Handling__: Comprehensive error checking and logging
+2. Updated CEquityCurveController
+	- __Replaced CIniFile with CConfigHandler__: Updated all configuration methods to use the new handler
+	- __Fixed Path Handling__: Ensured consistent use of `FILE_COMMON` flag for shared file access
+	- __Maintained Compatibility__: All method signatures remain the same
+3. Key Technical Improvements
+	- __Eliminated Windows API Dependencies__: No more external function calls that fail in MetaTrader
+	- __Proper File Location__: Files are stored in `MQL5/Files/` directory using `FILE_COMMON` flag
+	- __Export/Import Ready__: Configuration files will be included when the indicator is compiled and exported
+	- __Better Debugging__: Enhanced error messages and verification steps
+
+## Expected Results
+
+The configuration tests should now pass because:
+
+1. __SaveConfiguration__ will successfully write values to files
+2. __LoadConfiguration__ will correctly read saved values (not just return defaults)
+3. __ReloadConfiguration__ will work consistently
+4. __File modification detection__ will function properly
+
+The solution addresses the core requirement of producing an exportable indicator with configuration that can be consumed by a separate EA, using reliable MQL5 native file operations instead of problematic Windows API calls.
 
 ---
 ### Current Task -  ## Sprint 2.7: Live Configuration Reload Implementation Plan
 
 
 Done
-### 5. Testing Implementation
-
-- Create comprehensive test cases in `Test_Configuration.mq5` for live reload scenarios
-- Test automatic detection on file change
-- Test manual trigger via hotkey
-- Test error handling for invalid configurations during reload
+### Testing
+- Test_Configuration compiles 
+	- Several errors have been identified and need to be fixed.  This is a critcal part of the system
 
 ### 6. Documentation Updates
 

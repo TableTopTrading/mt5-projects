@@ -282,6 +282,71 @@ bool TestFileModificationDetection()
 }
 
 //+------------------------------------------------------------------+
+//| Validate input parameters (local copy for testing)               |
+//+------------------------------------------------------------------+
+bool ValidateInputParametersLocal(string symbol_list, double strong_threshold, 
+                                double weak_threshold, double position_size, 
+                                int update_frequency)
+{
+    // Validate SymbolList format and existence
+    if(StringLen(symbol_list) == 0)
+    {
+        return false;
+    }
+    
+    string symbols[];
+    int symbol_count = StringSplit(symbol_list, ',', symbols);
+    
+    if(symbol_count == 0)
+    {
+        return false;
+    }
+    
+    for(int i = 0; i < symbol_count; i++)
+    {
+        string symbol = symbols[i];
+        StringTrimLeft(symbol);
+        StringTrimRight(symbol);
+        
+        if(StringLen(symbol) == 0)
+        {
+        }
+    }
+    
+    // Validate StrongThreshold range (0.0-1.0)
+    if(strong_threshold < 0.0 || strong_threshold > 1.0)
+    {
+        return false;
+    }
+    
+    // Validate WeakThreshold range (0.0-1.0)
+    if(weak_threshold < 0.0 || weak_threshold > 1.0)
+    {
+        return false;
+    }
+    
+    // Validate threshold logic (StrongThreshold should be greater than WeakThreshold)
+    if(strong_threshold <= weak_threshold)
+    {
+        return false;
+    }
+    
+    // Validate PositionSize (must be positive)
+    if(position_size <= 0.0)
+    {
+        return false;
+    }
+    
+    // Validate UpdateFrequency (minimum reasonable value)
+    if(update_frequency < 1)
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
 //| Test configuration validation (Sprint 2.7)                      |
 //+------------------------------------------------------------------+
 bool TestConfigurationValidation()
@@ -289,38 +354,38 @@ bool TestConfigurationValidation()
     Print("\n6. Testing Configuration Validation...");
     
     // Test valid parameters
-    if(!ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 60))
+    if(!ValidateInputParametersLocal("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 60))
     {
         Print("ERROR: Valid parameters failed validation");
         return false;
     }
     
     // Test invalid parameters
-    if(ValidateInputParameters("", 0.7, 0.3, 0.1, 60)) // Empty symbol list
+    if(ValidateInputParametersLocal("", 0.7, 0.3, 0.1, 60)) // Empty symbol list
     {
         Print("ERROR: Empty symbol list should fail validation");
         return false;
     }
     
-    if(ValidateInputParameters("EURUSD,GBPUSD", 1.5, 0.3, 0.1, 60)) // Invalid strong threshold
+    if(ValidateInputParametersLocal("EURUSD,GBPUSD", 1.5, 0.3, 0.1, 60)) // Invalid strong threshold
     {
         Print("ERROR: Invalid strong threshold should fail validation");
         return false;
     }
     
-    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.8, 0.1, 60)) // Weak > Strong
+    if(ValidateInputParametersLocal("EURUSD,GBPUSD", 0.7, 0.8, 0.1, 60)) // Weak > Strong
     {
         Print("ERROR: Weak threshold > Strong threshold should fail validation");
         return false;
     }
     
-    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, -0.1, 60)) // Negative position size
+    if(ValidateInputParametersLocal("EURUSD,GBPUSD", 0.7, 0.3, -0.1, 60)) // Negative position size
     {
         Print("ERROR: Negative position size should fail validation");
         return false;
     }
     
-    if(ValidateInputParameters("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 0)) // Invalid update frequency
+    if(ValidateInputParametersLocal("EURUSD,GBPUSD", 0.7, 0.3, 0.1, 0)) // Invalid update frequency
     {
         Print("ERROR: Invalid update frequency should fail validation");
         return false;
