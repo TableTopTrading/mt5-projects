@@ -6,10 +6,11 @@
 #ifndef CCONFIGHANDLER_MQH
 #define CCONFIGHANDLER_MQH
 
-// MQL5 standard includes - these are built-in functions in MQL5
+// MQL5 standard includes - built-in functions are available by default
+// No additional includes needed for basic file operations
 
 //+------------------------------------------------------------------+
-//| Configuration handler using MQL5 native file functions           |
+//| Simplified configuration handler using MQL5 native file functions|
 //+------------------------------------------------------------------+
 class CConfigHandler
 {
@@ -31,21 +32,11 @@ public:
     int               ReadInteger(string section, string key, int default_value);
     bool              WriteDouble(string section, string key, double value);
     double            ReadDouble(string section, string key, double default_value);
-    bool              WriteBool(string section, string key, bool value);
-    bool              ReadBool(string section, string key, bool default_value);
-    
-    //--- Section operations
-    bool              SectionExists(string section);
-    bool              KeyExists(string section, string key);
-    bool              DeleteKey(string section, string key);
-    bool              DeleteSection(string section);
     
 private:
     //--- Utility methods
     string            FormatKey(string section, string key);
-    bool              ParseLine(string line, string &out_key, string &out_value);
-    string            EscapeString(string value);
-    string            UnescapeString(string value);
+    bool              EnsureDirectoryExists(string file_path);
 };
 
 //+------------------------------------------------------------------+
@@ -82,11 +73,17 @@ bool CConfigHandler::WriteString(string section, string key, string value)
         return false;
     }
     
-    string formatted_key = FormatKey(section, key);
-    string escaped_value = EscapeString(value);
-    string line_to_write = formatted_key + "=" + escaped_value;
+    // Ensure directory exists before writing
+    if(!EnsureDirectoryExists(m_config_file_path))
+    {
+        Print("[ERROR] Failed to ensure directory exists for: " + m_config_file_path);
+        return false;
+    }
     
-    // Read existing content
+    string formatted_key = FormatKey(section, key);
+    string line_to_write = formatted_key + "=" + value;
+    
+    // Read existing content to preserve other settings
     string current_content = "";
     if(FileIsExist(m_config_file_path, FILE_COMMON))
     {
@@ -98,7 +95,7 @@ bool CConfigHandler::WriteString(string section, string key, string value)
         }
     }
     
-    // Parse and update content
+    // Parse and update content - simple line-by-line replacement
     string lines[];
     int line_count = StringSplit(current_content, '\n', lines);
     bool key_found = false;
@@ -110,20 +107,24 @@ bool CConfigHandler::WriteString(string section, string key, string value)
         StringTrimLeft(line);
         StringTrimRight(line);
         
-        if(StringLen(line) == 0 || StringGetCharacter(line, 0) == ';')
+        // Skip empty lines and comments
+        if(StringLen(line) == 0 || StringFind(line, ";") == 0)
         {
-            // Keep comments and empty lines
             new_content += line + "\n";
             continue;
         }
         
-        string current_key, current_value;
-        if(ParseLine(line, current_key, current_value))
+        // Check if this line contains our key
+        int separator_pos = StringFind(line, "=");
+        if(separator_pos > 0)
         {
+            string current_key = StringSubstr(line, 0, separator_pos);
+            StringTrimRight(current_key);
+            
             if(current_key == formatted_key)
             {
                 // Replace existing key
-                new_content += formatted_key + "=" + escaped_value + "\n";
+                new_content += line_to_write + "\n";
                 key_found = true;
             }
             else
@@ -134,7 +135,7 @@ bool CConfigHandler::WriteString(string section, string key, string value)
         }
         else
         {
-            // Keep malformed lines (shouldn't happen in valid config)
+            // Keep malformed lines
             new_content += line + "\n";
         }
     }
@@ -142,21 +143,25 @@ bool CConfigHandler::WriteString(string section, string key, string value)
     // Add new key if not found
     if(!key_found)
     {
-        new_content += formatted_key + "=" + escaped_value + "\n";
+        new_content += line_to_write + "\n";
     }
     
     // Write updated content
     int file_handle = FileOpen(m_config_file_path, FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
     if(file_handle == INVALID_HANDLE)
     {
-        Print("[ERROR] Failed to open config file for writing: " + m_config_file_path);
+        int error_code = GetLastError();
+        Print("[ERROR] Failed to open config file for writing: " + m_config_file_path + 
+              " (Error " + IntegerToString(error_code) + ")");
         return false;
     }
     
     if(FileWrite(file_handle, new_content) <= 0)
     {
+        int error_code = GetLastError();
         FileClose(file_handle);
-        Print("[ERROR] Failed to write to config file: " + m_config_file_path);
+        Print("[ERROR] Failed to write to config file: " + m_config_file_path + 
+              " (Error " + IntegerToString(error_code) + ")");
         return false;
     }
     
@@ -179,7 +184,9 @@ string CConfigHandler::ReadString(string section, string key, string default_val
     
     if(file_handle == INVALID_HANDLE)
     {
-        Print("[ERROR] Failed to open config file for reading: " + m_config_file_path);
+        int error_code = GetLastError();
+        Print("[ERROR] Failed to open config file for reading: " + m_config_file_path + 
+              " (Error " + IntegerToString(error_code) + ")");
         return default_value;
     }
     
@@ -189,18 +196,25 @@ string CConfigHandler::ReadString(string section, string key, string default_val
         StringTrimLeft(line);
         StringTrimRight(line);
         
-        if(StringLen(line) == 0 || StringGetCharacter(line, 0) == ';')
+        // Skip empty lines and comments
+        if(StringLen(line) == 0 || StringFind(line, ";") == 0)
         {
-            continue; // Skip comments and empty lines
+            continue;
         }
         
-        string current_key, current_value;
-        if(ParseLine(line, current_key, current_value))
+        // Check if this line contains our key
+        int separator_pos = StringFind(line, "=");
+        if(separator_pos > 0)
         {
+            string current_key = StringSubstr(line, 0, separator_pos);
+            StringTrimRight(current_key);
+            
             if(current_key == formatted_key)
             {
+                string value = StringSubstr(line, separator_pos + 1);
+                StringTrimLeft(value);
                 FileClose(file_handle);
-                return UnescapeString(current_value);
+                return value;
             }
         }
     }
@@ -228,13 +242,7 @@ int CConfigHandler::ReadInteger(string section, string key, int default_value)
         return default_value;
     }
     
-    int result = (int)StringToInteger(str_value);
-    if(result == 0 && str_value != "0")
-    {
-        return default_value;
-    }
-    
-    return result;
+    return (int)StringToInteger(str_value);
 }
 
 //+------------------------------------------------------------------+
@@ -256,275 +264,7 @@ double CConfigHandler::ReadDouble(string section, string key, double default_val
         return default_value;
     }
     
-    double result = StringToDouble(str_value);
-    if(result == 0.0 && str_value != "0.0")
-    {
-        return default_value;
-    }
-    
-    return result;
-}
-
-//+------------------------------------------------------------------+
-//| Write boolean value to configuration                             |
-//+------------------------------------------------------------------+
-bool CConfigHandler::WriteBool(string section, string key, bool value)
-{
-    return WriteString(section, key, value ? "true" : "false");
-}
-
-//+------------------------------------------------------------------+
-//| Read boolean value from configuration                            |
-//+------------------------------------------------------------------+
-bool CConfigHandler::ReadBool(string section, string key, bool default_value)
-{
-    string str_value = ReadString(section, key, "");
-    if(str_value == "")
-    {
-        return default_value;
-    }
-    
-    str_value = StringToLower(str_value);
-    if(str_value == "true" || str_value == "1" || str_value == "yes")
-    {
-        return true;
-    }
-    else if(str_value == "false" || str_value == "0" || str_value == "no")
-    {
-        return false;
-    }
-    
-    return default_value;
-}
-
-//+------------------------------------------------------------------+
-//| Check if section exists                                          |
-//+------------------------------------------------------------------+
-bool CConfigHandler::SectionExists(string section)
-{
-    if(m_config_file_path == "" || !FileIsExist(m_config_file_path, FILE_COMMON))
-    {
-        return false;
-    }
-    
-    int file_handle = FileOpen(m_config_file_path, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    string search_pattern = "[" + section + "]";
-    
-    while(!FileIsEnding(file_handle))
-    {
-        string line = FileReadString(file_handle);
-        StringTrimLeft(line);
-        StringTrimRight(line);
-        
-        if(StringFind(line, search_pattern) == 0)
-        {
-            FileClose(file_handle);
-            return true;
-        }
-    }
-    
-    FileClose(file_handle);
-    return false;
-}
-
-//+------------------------------------------------------------------+
-//| Check if key exists in section                                   |
-//+------------------------------------------------------------------+
-bool CConfigHandler::KeyExists(string section, string key)
-{
-    if(m_config_file_path == "" || !FileIsExist(m_config_file_path, FILE_COMMON))
-    {
-        return false;
-    }
-    
-    string formatted_key = FormatKey(section, key);
-    int file_handle = FileOpen(m_config_file_path, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    while(!FileIsEnding(file_handle))
-    {
-        string line = FileReadString(file_handle);
-        StringTrimLeft(line);
-        StringTrimRight(line);
-        
-        if(StringLen(line) == 0 || StringGetCharacter(line, 0) == ';')
-        {
-            continue;
-        }
-        
-        string current_key, current_value;
-        if(ParseLine(line, current_key, current_value) && current_key == formatted_key)
-        {
-            FileClose(file_handle);
-            return true;
-        }
-    }
-    
-    FileClose(file_handle);
-    return false;
-}
-
-//+------------------------------------------------------------------+
-//| Delete key from configuration                                    |
-//+------------------------------------------------------------------+
-bool CConfigHandler::DeleteKey(string section, string key)
-{
-    if(m_config_file_path == "" || !FileIsExist(m_config_file_path, FILE_COMMON))
-    {
-        return true; // Nothing to delete
-    }
-    
-    string formatted_key = FormatKey(section, key);
-    int file_handle = FileOpen(m_config_file_path, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    string current_content = FileReadString(file_handle, (int)FileSize(file_handle));
-    FileClose(file_handle);
-    
-    string lines[];
-    int line_count = StringSplit(current_content, '\n', lines);
-    string new_content = "";
-    bool key_found = false;
-    
-    for(int i = 0; i < line_count; i++)
-    {
-        string line = lines[i];
-        StringTrimLeft(line);
-        StringTrimRight(line);
-        
-        if(StringLen(line) == 0 || StringGetCharacter(line, 0) == ';')
-        {
-            new_content += line + "\n";
-            continue;
-        }
-        
-        string current_key, current_value;
-        if(ParseLine(line, current_key, current_value))
-        {
-            if(current_key != formatted_key)
-            {
-                new_content += line + "\n";
-            }
-            else
-            {
-                key_found = true;
-            }
-        }
-        else
-        {
-            new_content += line + "\n";
-        }
-    }
-    
-    if(!key_found)
-    {
-        return true; // Key didn't exist, nothing to do
-    }
-    
-    // Write updated content
-    file_handle = FileOpen(m_config_file_path, FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    bool success = (FileWrite(file_handle, new_content) > 0);
-    FileClose(file_handle);
-    
-    return success;
-}
-
-//+------------------------------------------------------------------+
-//| Delete entire section from configuration                         |
-//+------------------------------------------------------------------+
-bool CConfigHandler::DeleteSection(string section)
-{
-    if(m_config_file_path == "" || !FileIsExist(m_config_file_path, FILE_COMMON))
-    {
-        return true; // Nothing to delete
-    }
-    
-    int file_handle = FileOpen(m_config_file_path, FILE_READ|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    string current_content = FileReadString(file_handle, (int)FileSize(file_handle));
-    FileClose(file_handle);
-    
-    string lines[];
-    int line_count = StringSplit(current_content, '\n', lines);
-    string new_content = "";
-    bool in_target_section = false;
-    bool section_found = false;
-    
-    for(int i = 0; i < line_count; i++)
-    {
-        string line = lines[i];
-        StringTrimLeft(line);
-        StringTrimRight(line);
-        
-        if(StringLen(line) == 0)
-        {
-            new_content += "\n";
-            continue;
-        }
-        
-        // Check for section headers
-        if(StringGetCharacter(line, 0) == '[' && StringGetCharacter(line, StringLen(line)-1) == ']')
-        {
-            if(in_target_section)
-            {
-                in_target_section = false; // Exiting target section
-            }
-            
-            string current_section = StringSubstr(line, 1, StringLen(line)-2);
-            if(current_section == section)
-            {
-                in_target_section = true;
-                section_found = true;
-                continue; // Skip the section header
-            }
-            
-            new_content += line + "\n";
-        }
-        else if(!in_target_section)
-        {
-            // Only add lines not in the target section
-            new_content += line + "\n";
-        }
-    }
-    
-    if(!section_found)
-    {
-        return true; // Section didn't exist, nothing to do
-    }
-    
-    // Write updated content
-    file_handle = FileOpen(m_config_file_path, FILE_WRITE|FILE_TXT|FILE_ANSI|FILE_COMMON);
-    if(file_handle == INVALID_HANDLE)
-    {
-        return false;
-    }
-    
-    bool success = (FileWrite(file_handle, new_content) > 0);
-    FileClose(file_handle);
-    
-    return success;
+    return StringToDouble(str_value);
 }
 
 //+------------------------------------------------------------------+
@@ -536,51 +276,67 @@ string CConfigHandler::FormatKey(string section, string key)
 }
 
 //+------------------------------------------------------------------+
-//| Parse a configuration line into key and value                    |
+//| Ensure directory exists for the given file path                  |
 //+------------------------------------------------------------------+
-bool CConfigHandler::ParseLine(string line, string &out_key, string &out_value)
+bool CConfigHandler::EnsureDirectoryExists(string file_path)
 {
-    int separator_pos = StringFind(line, "=");
-    if(separator_pos == -1)
+    // Extract directory from file path - find last backslash
+    int last_slash = StringFind(file_path, "\\", -1);
+    if(last_slash <= 0)
     {
+        return true; // No directory component or invalid path
+    }
+    
+    // Extract directory path (everything before the last backslash)
+    string directory = StringSubstr(file_path, 0, last_slash);
+    
+    // Debug output to verify path extraction
+    Print("[DEBUG] Extracted directory: " + directory + " from file: " + file_path);
+    
+    // Check if directory already exists first
+    if(FolderCreate(directory, FILE_COMMON))
+    {
+        return true;
+    }
+    
+    int error_code = GetLastError();
+    
+    // Error 5016 means directory already exists, which is fine
+    if(error_code == 5016)
+    {
+        return true;
+    }
+    
+    // For other errors, try to create parent directories recursively
+    if(error_code != 0)
+    {
+        Print("[WARN] Failed to create directory: " + directory + " (Error " + IntegerToString(error_code) + ")");
+        
+        // Try creating parent directories
+        int prev_slash = StringFind(directory, "\\", -2); // Find second-to-last slash
+        if(prev_slash > 0)
+        {
+            string parent_dir = StringSubstr(directory, 0, prev_slash);
+            if(EnsureDirectoryExists(parent_dir + "\\dummy.txt")) // Recursive call with dummy filename
+            {
+                // Retry creating the target directory
+                if(FolderCreate(directory, FILE_COMMON))
+                {
+                    return true;
+                }
+                error_code = GetLastError();
+                if(error_code == 5016) // Directory now exists
+                {
+                    return true;
+                }
+            }
+        }
+        
+        Print("[ERROR] Failed to create directory after recursive attempt: " + directory + " (Error " + IntegerToString(error_code) + ")");
         return false;
     }
     
-    out_key = StringSubstr(line, 0, separator_pos);
-    out_value = StringSubstr(line, separator_pos + 1);
-    
-    StringTrimLeft(out_key);
-    StringTrimRight(out_key);
-    StringTrimLeft(out_value);
-    StringTrimRight(out_value);
-    
-    return (StringLen(out_key) > 0);
-}
-
-//+------------------------------------------------------------------+
-//| Escape special characters in string values                       |
-//+------------------------------------------------------------------+
-string CConfigHandler::EscapeString(string value)
-{
-    StringReplace(value, "\\", "\\\\");
-    StringReplace(value, "\n", "\\n");
-    StringReplace(value, "\r", "\\r");
-    StringReplace(value, "\t", "\\t");
-    StringReplace(value, "=", "\\=");
-    return value;
-}
-
-//+------------------------------------------------------------------+
-//| Unescape special characters in string values                     |
-//+------------------------------------------------------------------+
-string CConfigHandler::UnescapeString(string value)
-{
-    StringReplace(value, "\\=", "=");
-    StringReplace(value, "\\t", "\t");
-    StringReplace(value, "\\r", "\r");
-    StringReplace(value, "\\n", "\n");
-    StringReplace(value, "\\\\", "\\");
-    return value;
+    return true;
 }
 
 //+------------------------------------------------------------------+

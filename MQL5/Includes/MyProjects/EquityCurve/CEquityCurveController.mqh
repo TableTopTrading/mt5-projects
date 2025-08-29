@@ -13,7 +13,6 @@
 #include <Trade/PositionInfo.mqh>
 
 // Project includes
-// #include <Files/File.mqh>  // Not needed - using MQL5 built-in functions
 #include "CConfigHandler.mqh"  // Custom configuration handler (replaces inifile.mqh)
 
 // Error handling utilities
