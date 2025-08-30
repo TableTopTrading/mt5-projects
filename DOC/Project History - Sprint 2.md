@@ -1,0 +1,16 @@
+## **Objective:** To setup the core EA Framework, for a MT5 EA 
+- Sprint 1: Core Framework Foundation
+- Sprint 2.1 Standard Includes Integration and Compilation Fix
+- Sprint 2.2: Directory Creation Implementation for the Equity Curve Signal EA. 
+- Sprint 2.3: File based logging
+- Sprint 2.4 Comprehensive Error Handling
+- Sprint 2.5 - Parameter Validation and Logging for the Equity Curve Signal EA.
+- Sprint 2.6 - Configuration File Support for the Equity Curve Signal EA. 
+- Sprint 2.7 Live Configuration Reload Implementation Plan
+	- Hit a snag in testing - and have had to remove the .ini file manager that I found in the code library
+		- Root Cause Identified
+			- The original CIniFile class was failing because it relied on Windows API functions (`WritePrivateProfileStringW`/`GetPrivateProfileStringW`) that have compatibility issues within MetaTrader's sandboxed environment.
+		- Solution Implemented
+			- Created Custom Configuration Handler (CConfigHandler.mqh)
+			- Updated CEquityCurveController
+- Sprint 2.8: Resource Cleanup Guarantees

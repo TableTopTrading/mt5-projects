@@ -1,6 +1,4 @@
 ## **Objective:** To setup the core EA Framework, for a MT5 EA 
-
-### Completed
 #### Sprint 1.1
 - __Standard MQL5 EA properties__ - Copyright, version, and strict mode directives
 - __Necessary header files__ - Corrected include paths to use "Include" (singular) instead of "Includes" based on the test system structure
