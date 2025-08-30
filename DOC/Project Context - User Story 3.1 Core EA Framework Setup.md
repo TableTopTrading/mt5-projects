@@ -79,8 +79,3 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 - Ensure cleanup works with all currently implemented components
 - Coordinate with future components to maintain cleanup standards
 - Update technical documentation with cleanup procedures
-
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes

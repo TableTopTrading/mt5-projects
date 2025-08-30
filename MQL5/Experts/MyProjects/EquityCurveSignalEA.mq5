@@ -37,12 +37,16 @@ CDataManager data_manager;
 CEquityCurveController controller;
 //CTrade trade; // MT5 standard trade object (commented out for now)
 
+// Thread safety for configuration reload (Sprint 2.7)
+bool g_is_reloading_config = false;
+
 // Configuration parameters
 input string SymbolList = "EURUSD,GBPUSD,USDJPY";
 input double StrongThreshold = 0.7;
 input double WeakThreshold = 0.3;
 input double PositionSize = 0.1;
 input int UpdateFrequency = 60; // seconds
+input int ReloadConfigKey = 115; // F4 key for manual configuration reload (Sprint 2.7)
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
@@ -121,6 +125,13 @@ void OnTick()
     // Update on frequency or new bar
     if(TimeCurrent() - last_update >= UpdateFrequency || IsNewBar())
     {
+        // Check for configuration file modifications (Sprint 2.7)
+        if(controller.CheckConfigFileModified())
+        {
+            Print("Configuration file modified detected - reload required");
+            // TODO: Implement automatic reload logic in future sprint
+        }
+        
         ProcessSignals();
         last_update = TimeCurrent();
     }
@@ -133,6 +144,156 @@ void ProcessSignals()
 {
     // Signal processing will be implemented in future sprints
     // This is a placeholder that will be replaced with CSignalGenerator and CTradeManager
+}
+
+//+------------------------------------------------------------------+
+//| Chart event handler for manual configuration reload              |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id,
+                  const long &lparam,
+                  const double &dparam,
+                  const string &sparam)
+{
+    // Handle key press events for manual configuration reload
+    if(id == CHARTEVENT_KEYDOWN)
+    {
+        if(lparam == ReloadConfigKey)
+        {
+            Print("Manual configuration reload triggered by hotkey (F4)");
+            ForceReloadConfiguration();
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Force reload configuration from file                             |
+//+------------------------------------------------------------------+
+void ForceReloadConfiguration()
+{
+    // Check for concurrent reload attempts (thread safety)
+    if(g_is_reloading_config)
+    {
+        Print("WARNING: Configuration reload already in progress - skipping duplicate request");
+        return;
+    }
+    
+    // Set reload flag to prevent concurrent access
+    g_is_reloading_config = true;
+    
+    string config_symbol_list;
+    double config_strong_threshold;
+    double config_weak_threshold;
+    double config_position_size;
+    int config_update_frequency;
+    
+    // Store current values for comparison
+    string current_symbol_list = SymbolList;
+    double current_strong_threshold = StrongThreshold;
+    double current_weak_threshold = WeakThreshold;
+    double current_position_size = PositionSize;
+    int current_update_frequency = UpdateFrequency;
+    
+    Print("Manual configuration reload initiated...");
+    
+    // Reload configuration from file
+    if(controller.ReloadConfiguration(config_symbol_list, config_strong_threshold,
+                                     config_weak_threshold, config_position_size,
+                                     config_update_frequency))
+    {
+        // Validate the reloaded parameters
+        if(ValidateConfigurationChanges(current_symbol_list, current_strong_threshold, current_weak_threshold,
+                                      current_position_size, current_update_frequency,
+                                      config_symbol_list, config_strong_threshold, config_weak_threshold,
+                                      config_position_size, config_update_frequency))
+        {
+            Print("Configuration reloaded and validated successfully:");
+            Print("SymbolList: " + config_symbol_list);
+            Print("StrongThreshold: " + DoubleToString(config_strong_threshold, 2));
+            Print("WeakThreshold: " + DoubleToString(config_weak_threshold, 2));
+            Print("PositionSize: " + DoubleToString(config_position_size, 2));
+            Print("UpdateFrequency: " + IntegerToString(config_update_frequency));
+            
+            // TODO: Apply the new configuration to the running EA
+            // This will be implemented in future sprints when signal processing is active
+        }
+        else
+        {
+            Print("ERROR: Reloaded configuration failed validation - configuration not applied");
+            // Note: Input parameters cannot be modified at runtime in MQL5.
+            // The reloaded configuration will not be applied to the running EA.
+            // Users must restart the EA to apply configuration changes from file.
+        }
+    }
+    else
+    {
+        Print("ERROR: Failed to reload configuration from file");
+    }
+    
+    // Reset reload flag to allow future operations
+    g_is_reloading_config = false;
+}
+
+//+------------------------------------------------------------------+
+//| Validate configuration changes and compare with current values   |
+//+------------------------------------------------------------------+
+bool ValidateConfigurationChanges(string current_symbol_list, double current_strong_threshold,
+                                 double current_weak_threshold, double current_position_size,
+                                 int current_update_frequency,
+                                 string new_symbol_list, double new_strong_threshold,
+                                 double new_weak_threshold, double new_position_size,
+                                 int new_update_frequency)
+{
+    // First validate the new parameters using the existing validation
+    if(!ValidateInputParameters(new_symbol_list, new_strong_threshold, new_weak_threshold,
+                              new_position_size, new_update_frequency))
+    {
+        Print("ERROR: New configuration parameters failed basic validation");
+        return false;
+    }
+    
+    // Compare with current values and log changes
+    bool changes_detected = false;
+    
+    if(new_symbol_list != current_symbol_list)
+    {
+        Print("SymbolList changed: " + current_symbol_list + " -> " + new_symbol_list);
+        changes_detected = true;
+    }
+    
+    if(new_strong_threshold != current_strong_threshold)
+    {
+        Print("StrongThreshold changed: " + DoubleToString(current_strong_threshold, 2) + 
+              " -> " + DoubleToString(new_strong_threshold, 2));
+        changes_detected = true;
+    }
+    
+    if(new_weak_threshold != current_weak_threshold)
+    {
+        Print("WeakThreshold changed: " + DoubleToString(current_weak_threshold, 2) + 
+              " -> " + DoubleToString(new_weak_threshold, 2));
+        changes_detected = true;
+    }
+    
+    if(new_position_size != current_position_size)
+    {
+        Print("PositionSize changed: " + DoubleToString(current_position_size, 2) + 
+              " -> " + DoubleToString(new_position_size, 2));
+        changes_detected = true;
+    }
+    
+    if(new_update_frequency != current_update_frequency)
+    {
+        Print("UpdateFrequency changed: " + IntegerToString(current_update_frequency) + 
+              " -> " + IntegerToString(new_update_frequency));
+        changes_detected = true;
+    }
+    
+    if(!changes_detected)
+    {
+        Print("Configuration reloaded but no changes detected - values identical to current configuration");
+    }
+    
+    return true;
 }
 
 //+------------------------------------------------------------------+
