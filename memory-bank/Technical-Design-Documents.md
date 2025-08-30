@@ -138,47 +138,79 @@ Execute trades based on generated signals with proper position management.
 ```mql5
 class CTradeManager {
 private:
-    CPositionTracker m_position_tracker;
-    double m_position_size;
-    ENUM_POSITION_SIZE_MODE m_size_mode;
+    CPositionTracker* m_position_tracker; // Position tracker instance
+    double m_position_size;    // Position size parameter
+    ENUM_POSITION_SIZE_MODE m_size_mode;  // Position sizing mode
     
 public:
-    CTradeManager();
-    ~CTradeManager();
+    //--- Constructor and destructor
+                     CTradeManager(void);
+                    ~CTradeManager(void);
     
-    bool Initialize(double position_size, ENUM_POSITION_SIZE_MODE size_mode);
-    bool ExecuteSignal(ENUM_TRADE_SIGNAL signal, string symbol);
-    bool OpenBuyPosition(string symbol);
-    bool OpenSellPosition(string symbol);
-    bool ClosePosition(string symbol);
-    double CalculatePositionSize(string symbol);
-    bool HasOpenPosition(string symbol);
+    //--- Initialization and configuration
+    bool              Initialize(double position_size, ENUM_POSITION_SIZE_MODE size_mode, CPositionTracker* position_tracker);
+    
+    //--- Trade execution methods
+    bool              ExecuteSignal(ENUM_TRADE_SIGNAL signal, string symbol);
+    bool              OpenBuyPosition(string symbol);
+    bool              OpenSellPosition(string symbol);
+    bool              ClosePosition(string symbol);
+    
+    //--- Position management
+    double            CalculatePositionSize(string symbol);
+    bool              HasOpenPosition(string symbol);
+    
+private:
+    //--- Helper methods
+    bool              ValidateTradeParameters(string symbol);
+    string            GetErrorDescription(int error_code);
+    void              LogTradeError(string context, int error_code, string details = "");
 };
 ```
 
 #### Trade Execution Logic
 ```mql5
 bool CTradeManager::ExecuteSignal(ENUM_TRADE_SIGNAL signal, string symbol) {
+    if(!ValidateTradeParameters(symbol)) {
+        return false;
+    }
+    
     switch(signal) {
         case SIGNAL_BUY:
             if(!HasOpenPosition(symbol)) {
                 return OpenBuyPosition(symbol);
             }
             break;
+            
         case SIGNAL_SELL:
             if(!HasOpenPosition(symbol)) {
                 return OpenSellPosition(symbol);
             }
             break;
+            
         case SIGNAL_CLOSE:
             if(HasOpenPosition(symbol)) {
                 return ClosePosition(symbol);
             }
             break;
+            
+        case SIGNAL_HOLD:
+            // No action required
+            break;
     }
+    
     return false;
 }
 ```
+
+#### Enhanced Features
+- **Comprehensive Error Handling**: Detailed error logging with MQL5 trade error code descriptions
+- **Multiple Position Sizing Modes**: Fixed size, percentage of balance, and ATR-based sizing
+- **Position Validation**: Integration with CPositionTracker to prevent duplicate positions
+- **Trade Execution**: Uses MQL5's CTrade class for reliable order placement
+- **Signal Processing**: Executes buy, sell, close, and hold signals appropriately
+
+#### Status: ✅ IMPLEMENTED - CTradeManager.mqh created and ready for integration
 
 ### CPositionTracker Class Design
 
@@ -190,30 +222,53 @@ Track and manage open positions with state persistence.
 class CPositionTracker {
 private:
     struct PositionInfo {
-        string symbol;
-        long ticket;
-        double volume;
-        double entry_price;
-        datetime entry_time;
-        ENUM_POSITION_TYPE type;
+        string symbol;         // Symbol name
+        long ticket;           // Position ticket
+        double volume;         // Position volume
+        double entry_price;    // Entry price
+        datetime entry_time;   // Entry time
+        ENUM_POSITION_TYPE type; // Position type (BUY/SELL)
+        
+        // Constructor
+        PositionInfo() : symbol(""), ticket(0), volume(0.0), entry_price(0.0), entry_time(0), type(POSITION_BUY) {}
+        
+        // Parameterized constructor
+        PositionInfo(string sym, long tkt, double vol, double price, datetime time, ENUM_POSITION_TYPE pos_type) :
+            symbol(sym), ticket(tkt), volume(vol), entry_price(price), entry_time(time), type(pos_type) {}
     };
     
-    PositionInfo m_positions[];
+    PositionInfo m_positions[];  // Array of tracked positions
     
 public:
-    CPositionTracker();
-    ~CPositionTracker();
+    //--- Constructor and destructor
+                     CPositionTracker(void);
+                    ~CPositionTracker(void);
     
-    void UpdatePositions();
-    bool AddPosition(string symbol, long ticket, double volume, 
-                    double entry_price, ENUM_POSITION_TYPE type);
-    bool RemovePosition(long ticket);
-    PositionInfo GetPosition(string symbol);
-    bool HasPosition(string symbol);
-    int GetOpenPositionCount();
-    double GetTotalExposure();
+    //--- Position management methods
+    void              UpdatePositions(void);
+    bool              AddPosition(string symbol, long ticket, double volume, 
+                                 double entry_price, ENUM_POSITION_TYPE type);
+    bool              RemovePosition(long ticket);
+    PositionInfo      GetPosition(string symbol);
+    bool              HasPosition(string symbol);
+    int               GetOpenPositionCount(void);
+    double            GetTotalExposure(void);
+    
+private:
+    //--- Helper methods
+    int               FindPositionIndex(string symbol);
+    int               FindPositionIndex(long ticket);
+    ENUM_POSITION_TYPE GetPositionTypeFromMQL(ENUM_POSITION_TYPE mql_type);
 };
 ```
+
+#### Enhanced Features
+- **Real-time Position Syncing**: Syncs with current open positions using MQL5 PositionInfo functions
+- **Comprehensive Error Handling**: Validates all position parameters before adding to tracker
+- **Efficient Array Management**: Proper array resizing and memory management
+- **Position Type Conversion**: Converts MQL5 position types to internal ENUM_POSITION_TYPE
+
+#### Status: ✅ IMPLEMENTED - CPositionTracker.mqh created and ready for integration
 
 ### CEquityCurveWriter Class Design
 

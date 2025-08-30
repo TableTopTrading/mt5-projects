@@ -52,6 +52,49 @@ Note:  this has been revised to a beta product and streamlined.
 - Add position size calculation based on input parameter
 - Include basic error handling for trade execution failures
 - Integrate with CPositionTracker for position validation
+##### Current Project Analysis
+- __CSignalGenerator.mqh__ is already implemented and provides signal generation functionality
+- __CEquityCurveController.mqh__ exists and handles initialization, logging, and configuration
+- __CPositionTracker__ is required for integration but doesn't exist yet
+- The task requires creating CTradeManager.mqh with specific trade execution methods
+##### Implementation Plan
+1. Create CPositionTracker.mqh (Prerequisite Dependency)
+	Since CTradeManager needs to integrate with CPositionTracker for position validation, I'll first create CPositionTracker.mqh with the following structure:
+		- Define ENUM_POSITION_TYPE (BUY/SELL)
+		- Implement PositionInfo struct with symbol, ticket, volume, entry_price, entry_time, and type
+		- Create CPositionTracker class with methods for:
+		  - UpdatePositions() - sync with current open positions
+		  - AddPosition() - track new positions
+		  - RemovePosition() - remove closed positions
+		  - GetPosition() - retrieve position info
+		  - HasPosition() - check if symbol has open position
+		  - GetOpenPositionCount() - count open positions
+		  - GetTotalExposure() - calculate total risk exposure
+2. Create CTradeManager.mqh
+	This will be the main implementation file with:
+		- Include guards and necessary headers (Trade/Trade.mqh, CPositionTracker.mqh)
+		- Define ENUM_POSITION_SIZE_MODE (SIZE_FIXED, SIZE_PERCENTAGE, SIZE_ATR_BASED)
+		- Implement the CTradeManager class with:
+		  - Private members: CPositionTracker instance, position size, size mode
+		  - Constructor/destructor
+		  - Initialize() method to set position size parameters
+		  - ExecuteSignal() method to process trade signals
+		  - OpenBuyPosition()/OpenSellPosition() methods with error handling
+		  - ClosePosition() method with error handling
+		  - CalculatePositionSize() method based on size mode
+		  - HasOpenPosition() method using CPositionTracker
+3. Key Implementation Details
+	- __Trade Execution__: Use MQL5's CTrade class for order placement with proper error checking
+	- __Error Handling__: Implement comprehensive error handling for trade execution failures with descriptive messages
+	- __Position Sizing__: Support multiple sizing modes (fixed, percentage of balance, ATR-based)
+	- __Integration__: Ensure proper integration with CPositionTracker for position validation and tracking
+	- __Logging__: Use Print statements for now, with potential integration to CEquityCurveController logging later
+4. Testing Considerations
+	- The implementation will need to be tested in Strategy Tester due to account restrictions
+	- Error handling should be robust to handle various trade execution scenarios
+	- Position size calculations should be validated for different modes
+
+# NEXT
 #### Task 3.1.3: Implement CPositionTracker Class
 - Create CPositionTracker.mqh file in MQL5/Includes/MyProjects/EquityCurve/
 - Define PositionInfo structure to store position data
