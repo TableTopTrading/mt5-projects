@@ -14,6 +14,7 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
     - Example: `#include <MyProjects\ComponentName\FileName.mqh>`
 
 ### Completed
+<<<<<<< Updated upstream
 
 #### Sprint 1: Core Framework Foundation
 #### Sprint 2.1 Standard Includes Integration and Compilation Fix
@@ -145,6 +146,8 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 - [ ] Test live reload functionality
 - [ ] Update documentation with reload instructions
 =======
+=======
+>>>>>>> Stashed changes
 -  Sprint 1: Core Framework Foundation
  - Sprint 2.1 Standard Includes Integration and Compilation Fix
 - Sprint 2.2: Directory Creation Implementation for the Equity Curve Signal EA. 
@@ -211,4 +214,7 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 - Coordinate with future components to maintain cleanup standards
 - Update technical documentation with cleanup procedures
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
