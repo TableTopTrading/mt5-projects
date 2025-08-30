@@ -94,6 +94,12 @@ Note:  this has been revised to a beta product and streamlined.
 	- Error handling should be robust to handle various trade execution scenarios
 	- Position size calculations should be validated for different modes
 
+# Testing
+It compiles but how to test?  Observations
+- On Demo account - it installs and then immediately closes - removes itself
+- In tester - it seems to just run and not remove itself
+- I have a sprint allocated to testing later so perhaps there isnt much to see / do at this point? -
+The chat - confirms an approach to complete the other classes and integrate then test
 # NEXT
 #### Task 3.1.3: Implement CPositionTracker Class
 - Create CPositionTracker.mqh file in MQL5/Includes/MyProjects/EquityCurve/
