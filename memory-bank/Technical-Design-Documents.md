@@ -424,6 +424,15 @@ public:
     bool              CheckLogRotation(void);
     void              Cleanup(void);
     
+    //--- Enhanced cleanup documentation
+    /**
+     * Enhanced Cleanup Method Features:
+     * - Error Handling: Comprehensive error checking and reporting for file closure operations
+     * - Fallback Logging: Uses Print() statements instead of file-based logging during cleanup
+     * - Idempotent Operation: Safely callable multiple times without causing errors
+     * - Resource Release: Ensures all file handles are properly closed with error reporting
+     */
+    
     //--- Logging methods
     void              LogInfo(string message);
     void              LogWarning(string message);
@@ -434,6 +443,20 @@ public:
     
     //--- Utility methods
     bool              CreateDirectoryWithCheck(string path);
+    
+    //--- Configuration methods (Sprint 2.6)
+    bool              LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                                       double &weak_threshold, double &position_size, 
+                                       int &update_frequency);
+    bool              SaveConfiguration(string symbol_list, double strong_threshold, 
+                                       double weak_threshold, double position_size, 
+                                       int update_frequency);
+    bool              ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                                         double &weak_threshold, double &position_size, 
+                                         int &update_frequency);
+    
+    //--- File modification detection methods (Sprint 2.7)
+    bool              CheckConfigFileModified(void);
     
     //--- Getter methods
     bool              IsInitialized(void) const { return m_initialized; }

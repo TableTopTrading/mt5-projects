@@ -644,13 +644,17 @@ void CEquityCurveController::Cleanup(void)
     // Close log file if open with error handling
     if(m_log_file_handle != INVALID_HANDLE)
     {
-        if(!FileClose(m_log_file_handle))
+        FileClose(m_log_file_handle);
+        int error_code = GetLastError();
+        if(error_code != 0)
         {
-            int error_code = GetLastError();
             Print("[ERROR] Failed to close log file handle (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
         }
+        else
+        {
+            Print("[INFO] Log file closed: " + m_current_log_file); // Use Print instead of LogInfo during cleanup
+        }
         m_log_file_handle = INVALID_HANDLE;
-        Print("[INFO] Log file closed: " + m_current_log_file); // Use Print instead of LogInfo during cleanup
     }
     
     // Reset all members to initial state
