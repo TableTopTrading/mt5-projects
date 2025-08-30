@@ -1,87 +1,106 @@
+Note:  this has been revised to a beta product and streamlined.
+### Critical Design Artifacts and Decisions
+1. Signal Generation Architecture
+	1. __Decision__: Implement CSignalGenerator with threshold-based categorization:
+	- Use ENUM_STRENGTH_CATEGORY (STRONG_BULL, WEAK_BULL, NEUTRAL, etc.)
+	- Map categories to ENUM_TRADE_SIGNAL (BUY, SELL, CLOSE, HOLD)
+	- Implement strength value caching to avoid recalculating on every tick
+2. Trade Execution Pattern
+	1. __Decision__: Use CTradeManager with position validation:
+	- Check for existing positions before executing new signals
+	- Implement proper lot size calculation
+	- Include basic error handling for trade execution failures
+3. Position Tracking Approach
+	__Decision__: CPositionTracker should:
+	- Maintain array of open positions with ticket numbers
+	- Provide methods to check position existence and details
+	- Integrate with trade manager for position management
+4. Data Output Strategy
+	__Decision__: CEquityCurveWriter should:
+	- Write minimal essential data for live trading EA integration
+	- Use simple CSV format with timestamp, equity, strength, and position data
+	- Implement basic file rotation to prevent unlimited growth
+5. Performance Considerations
+	__Essential optimizations for beta:__
+	- Implement strength value caching with timestamp validation
+	- Use ArrayResize with reserve for position tracking arrays
+	- Add configurable update frequency to reduce CPU load
+	- Basic memory usage monitoring in logs
+
+---
 ## Sprint 3 (User Story 3.1): Integration Ready & Performance
 
-### Overview
+### __Sprint 3.1: Core Trading Implementation__ (Highest Priority)
+- Implement CSignalGenerator with threshold logic
+- Implement CTradeManager with basic trade execution
+- Implement CPositionTracker for position management
+- Implement CEquityCurveWriter for data output
 
-Sprint 3 completes the Core EA Framework Setup by focusing on performance optimization, integration readiness, and comprehensive documentation to prepare for dashboard integration work.
+# DONE
+#### Task 3.1.1: Implement CSignalGenerator Class
+- Create CSignalGenerator.mqh file in MQL5/Includes/MyProjects/EquityCurve/
+- Define class structure with threshold parameters and categorization logic
+- Implement ENUM_STRENGTH_CATEGORY and ENUM_TRADE_SIGNAL mappings
+- Add methods: Initialize(), CategorizeStrength(), GenerateSignal()
+- Integrate with CDataManager for strength value access
+- Implement basic signal logic: STRONG_BULL → BUY, STRONG_BEAR → SELL, NEUTRAL → CLOSE
+# DOING
+#### Task 3.1.2: Implement CTradeManager Class
+- Create CTradeManager.mqh file in MQL5/Includes/MyProjects/EquityCurve/
+- Define class structure with position size parameters
+- Implement trade execution methods: OpenBuyPosition(), OpenSellPosition(), ClosePosition()
+- Add position size calculation based on input parameter
+- Include basic error handling for trade execution failures
+- Integrate with CPositionTracker for position validation
+#### Task 3.1.3: Implement CPositionTracker Class
+- Create CPositionTracker.mqh file in MQL5/Includes/MyProjects/EquityCurve/
+- Define PositionInfo structure to store position data
+- Implement methods: UpdatePositions(), AddPosition(), RemovePosition(), HasPosition()
+- Provide position counting and exposure calculation
+- Ensure thread-safe access for multi-symbol trading
+#### Task 3.1.4: Implement CEquityCurveWriter Class
+- Create CEquityCurveWriter.mqh file in MQL5/Includes/MyProjects/EquityCurve/
+- Define class structure with output path configuration
+- Implement WriteData() method for CSV output
+- Include essential fields: timestamp, balance, equity, strength, symbol, action
+- Add basic file rotation to prevent unlimited file growth
+- Integrate with controller for path management
+#### Task 3.1.5: Integrate Components into Main EA
+- Update EquityCurveSignalEA.mq5 to include new component headers
+- Modify OnInit() to initialize all new components with configuration parameters
+- Replace placeholder ProcessSignals() with actual signal generation and trade execution
+- Add proper cleanup of new components in OnDeinit()
+- Ensure error handling propagates through all components
+#### Task 3.1.6: Basic Functional Testing
+- Create simple test script to verify signal generation logic
+- Test trade execution in Strategy Tester with visual validation
+- Verify CSV output file creation and data format
+- Test configuration reload with new components
+- Validate position tracking accuracy
+#### Task 3.1.7: Documentation and Examples
+- Add essential inline comments to all new classes
+- Create configuration examples for different trading strategies
+- Document signal logic and threshold recommendations
+- Provide troubleshooting notes for common issues
+#### Dependencies and Sequencing:
+1. CSignalGenerator must be implemented first (3.1.1)
+2. CPositionTracker should be completed before CTradeManager (3.1.3 before 3.1.2)
+3. Component integration (3.1.5) can begin once individual classes are stable
+4. Testing (3.1.6) should run in parallel with development
 
----
+#### Estimated Focus Areas:
+- __Signal Generation__: ~40% of effort (core logic)
+- __Trade Execution__: ~30% of effort (execution and error handling)
+- __Position Tracking__: ~20% of effort (state management)
+- __Data Output__: ~10% of effort (simple CSV writing)
 
-### Sprint 3.1: Performance Optimization & Memory Management
+### __Sprint 3.2: Essential Optimization__ (Medium Priority)
+- Strength value caching to avoid recalculations
+- Basic memory management for position arrays
+- Configurable update frequency implementation
+- Minimal performance profiling
 
-**Objective:** Optimize EA performance and implement robust memory management
-
-**Activities:**
-
-- [ ] Profile initialization and cleanup performance using MQL5 GetMicrosecondCount()
-- [ ] Optimize file I/O operations (buffer sizing, async where possible)
-- [ ] Implement memory pooling for frequently allocated objects
-- [ ] Add memory usage tracking and reporting in logs
-- [ ] Optimize directory creation to check existence before attempting creation
-- [ ] Benchmark configuration file loading times and optimize
-- [ ] Test performance under high-frequency operations
-- [ ] Validate memory usage stays within reasonable bounds
-
-**Dependencies:** Sprint 2 completed (all core functionality implemented)
-
----
-
-### Sprint 3.2: Cross-Version Compatibility & Robustness
-
-This is not needed - at most it might be useful to have a build version and OS log in case of failures on other setups.
-
-**Objective:** Ensure compatibility across MT5 versions and improve robustness
-
-**Activities:**
-
-- [ ] Test compatibility with MT5 build versions (current and legacy)
-- [ ] Implement graceful degradation for missing features in older builds
-- [ ] Add build version detection and feature availability checks
-- [ ] Test on different operating systems (Windows variants)
-- [ ] Validate Unicode and locale handling for international users
-- [ ] Implement fallback mechanisms for file system limitations
-- [ ] Test with different broker server configurations
-- [ ] Verify functionality with various symbol naming conventions
-
-**Dependencies:** Sprint 3.1 completed (performance optimized)
-
----
-
-### Sprint 3.3: Comprehensive Documentation & Code Quality
-
-Most or all of this is probably not needed.  Review and check that there isn't something useful that I can pull out.
-
-**Objective:** Complete documentation and ensure code maintainability
-
-**Activities:**
-
-- [ ] Add comprehensive inline documentation to all classes and methods
-- [ ] Create technical architecture document for future developers
-- [ ] Document all configuration parameters with examples
-- [ ] Create troubleshooting guide with common issues and solutions
-- [ ] Implement code review checklist compliance
-- [ ] Add method and class complexity metrics
-- [ ] Ensure consistent coding standards throughout codebase
-- [ ] Create developer onboarding documentation
-
-**Dependencies:** Sprint 3.2 completed (compatibility verified)
-
----
-
-### Sprint 3.4: Integration Testing & Validation
-
-Review these requirements to what can be dropped - some are useful while others appear superfluous.
-
-**Objective:** Prepare for integration with dashboard components
-
-**Activities:**
-
-- [ ] Create mock SuperSlopeDashboard integration points
-- [ ] Test EA behavior with various initialization scenarios
-- [ ] Validate thread safety for multi-component integration
-- [ ] Create integration test suite for dashboard connectivity
-- [ ] Test configuration sharing between EA and dashboard components
-- [ ] Verify logging coordination between components
-- [ ] Perform stress testing with rapid configuration changes
-- [ ] Create integration acceptance criteria
-
-**Dependencies:** Sprint 3.3 completed (documentation ready)
+## __Sprint 3.3: Integration Preparedness__ (Low Priority)
+- Basic test framework for signal generation
+- Mock dashboard integration points
+- Configuration examples for trading strategies

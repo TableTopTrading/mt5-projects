@@ -44,21 +44,36 @@ Process strength values and generate trading signals based on configured rules.
 ```mql5
 class CSignalGenerator {
 private:
-    double m_strong_threshold;
-    double m_weak_threshold;
-    string m_symbols[];
-    ENUM_STRENGTH_CATEGORY m_categories[];
+    double m_strong_threshold;  // Threshold for strong signals
+    double m_weak_threshold;    // Threshold for weak signals
+    string m_symbols[];         // Array of symbols to monitor
+    ENUM_STRENGTH_CATEGORY m_categories[]; // Strength categories for each symbol
+    
+    // Reference to data manager for strength value access
+    CDataManager* m_data_manager;
     
 public:
-    CSignalGenerator();
-    ~CSignalGenerator();
+    //--- Constructor and destructor
+                     CSignalGenerator(void);
+                    ~CSignalGenerator(void);
     
-    bool Initialize(double strong_threshold, double weak_threshold);
-    void SetSymbols(const string &symbols[]);
+    //--- Initialization and configuration methods
+    bool              Initialize(double strong_threshold, double weak_threshold, CDataManager* data_manager);
+    void              SetSymbols(const string &symbols[]);
+    
+    //--- Signal generation methods
     ENUM_STRENGTH_CATEGORY CategorizeStrength(double strength);
     ENUM_TRADE_SIGNAL GenerateSignal(string symbol, double strength);
-    void ProcessStrength(string symbol, double strength);
+    void              ProcessStrength(string symbol, double strength);
     ENUM_STRENGTH_CATEGORY GetCategory(string symbol);
+    
+    //--- Utility methods
+    int               GetSymbolCount(void) const { return ArraySize(m_symbols); }
+    string            GetSymbol(int index) const;
+    
+private:
+    //--- Helper methods
+    int               FindSymbolIndex(string symbol);
 };
 ```
 
@@ -66,8 +81,14 @@ public:
 ```mql5
 ENUM_TRADE_SIGNAL CSignalGenerator::GenerateSignal(string symbol, double strength) {
     ENUM_STRENGTH_CATEGORY category = CategorizeStrength(strength);
-    m_categories[ArraySize(m_categories)] = category;
     
+    // Update category for this symbol
+    int index = FindSymbolIndex(symbol);
+    if(index >= 0) {
+        m_categories[index] = category;
+    }
+    
+    // Generate trade signal based on category
     switch(category) {
         case STRONG_BULL:
             return SIGNAL_BUY;
@@ -75,11 +96,38 @@ ENUM_TRADE_SIGNAL CSignalGenerator::GenerateSignal(string symbol, double strengt
             return SIGNAL_SELL;
         case NEUTRAL:
             return SIGNAL_CLOSE;
+        case WEAK_BULL:
+        case WEAK_BEAR:
         default:
             return SIGNAL_HOLD;
     }
 }
 ```
+
+#### Strength Categorization Logic
+```mql5
+ENUM_STRENGTH_CATEGORY CSignalGenerator::CategorizeStrength(double strength) {
+    // Validate strength value
+    if(!MathIsValidNumber(strength)) {
+        Print("WARNING: Invalid strength value received: " + DoubleToString(strength));
+        return NEUTRAL;
+    }
+    
+    // Categorize based on thresholds
+    if(strength >= m_strong_threshold)
+        return STRONG_BULL;
+    else if(strength >= m_weak_threshold)
+        return WEAK_BULL;
+    else if(strength >= -m_weak_threshold)
+        return NEUTRAL;
+    else if(strength >= -m_strong_threshold)
+        return WEAK_BEAR;
+    else
+        return STRONG_BEAR;
+}
+```
+
+#### Status: ✅ IMPLEMENTED - CSignalGenerator.mqh created and ready for integration
 
 ### CTradeManager Class Design
 
