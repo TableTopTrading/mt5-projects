@@ -798,28 +798,28 @@ public:
 
 ### Completed Enhancements
 
-#### 1. CIniFile Library Integration
-- ✅ **Library Selection**: Integrated Batohov's CIniFile class for robust INI file handling using Windows API calls
-- ✅ **Object-Oriented Design**: Class-based approach that fits perfectly with existing MVC architecture
-- ✅ **Native Performance**: Uses Windows kernel32.dll functions for efficient INI operations
-- ✅ **Comprehensive Features**: Supports all data types (string, int, double, bool, datetime) with section/key management
+#### 1. Custom CConfigHandler Implementation
+- ✅ **Native MQL5 Solution**: Created custom CConfigHandler class using MQL5's built-in file functions
+- ✅ **Windows API Elimination**: Removed problematic Windows API dependencies that caused compatibility issues
+- ✅ **Full Feature Parity**: Supports all operations (Read/Write String, Integer, Double) with identical API
+- ✅ **Enhanced Reliability**: Works within MetaTrader's sandboxed environment without external dependencies
 
 #### 2. Configuration Management Methods
-- ✅ **LoadConfiguration()**: Loads parameters from INI file with default fallbacks and validation
-- ✅ **SaveConfiguration()**: Saves current settings to INI file with comprehensive error handling
+- ✅ **LoadConfiguration()**: Loads parameters from configuration file with default fallbacks and validation
+- ✅ **SaveConfiguration()**: Saves current settings using atomic write operations to prevent race conditions
 - ✅ **ReloadConfiguration()**: Reloads configuration without EA restart for dynamic updates
 - ✅ **Parameter Priority**: Implements three-tier loading strategy (config file → input params → defaults)
 
 #### 3. Configuration File Structure
-- ✅ **Standard INI Format**: Uses industry-standard INI file format for compatibility
-- ✅ **File Location**: `EquityCurveSignals\Configuration\EquityCurveConfig.ini`
-- ✅ **Section Organization**: [General] section for all EA parameters
+- ✅ **Simple Key-Value Format**: Uses straightforward key=value format for maximum compatibility
+- ✅ **File Location**: `EquityCurveSignals\Configuration\EquityCurveConfig.ini` with FILE_COMMON flag
+- ✅ **Key Organization**: Uses dot notation (General.SymbolList) for structured parameter naming
 - ✅ **Parameter Types**: Supports all EA input parameter types with proper data conversion
 
 #### 4. Enhanced Error Handling & Logging
 - ✅ **Comprehensive Error Reporting**: Detailed error messages for all configuration operations
-- ✅ **Graceful Degradation**: Falls back to input parameters when config file is missing/invalid
-- ✅ **Audit Logging**: All configuration operations are logged for audit trail purposes
+- ✅ **Atomic Write Operations**: Prevents race conditions by writing complete configuration in single operation
+- ✅ **Audit Logging**: All configuration operations are logged with detailed debug information
 - ✅ **Validation Integration**: Uses existing parameter validation framework for loaded values
 
 ### Technical Implementation Details
@@ -839,14 +839,29 @@ bool ReloadConfiguration(string &symbol_list, double &strong_threshold,
 ```
 
 #### Configuration File Format
-```ini
-[General]
-SymbolList=EURUSD,GBPUSD,USDJPY
-StrongThreshold=0.7
-WeakThreshold=0.3
-PositionSize=0.1
-UpdateFrequency=60
 ```
+General.SymbolList=EURUSD,GBPUSD,USDJPY
+General.StrongThreshold=0.7
+General.WeakThreshold=0.3
+General.PositionSize=0.1
+General.UpdateFrequency=60
+```
+
+#### Atomic Write Implementation
+The SaveConfiguration() method now uses atomic write operations:
+1. **Build Complete Content**: Constructs entire configuration as single string in memory
+2. **Single File Operation**: Writes all key-value pairs in one atomic file operation
+3. **Race Condition Prevention**: Eliminates issues with sequential file writes that caused stale reads
+4. **Reliable Persistence**: Ensures all configuration values are properly saved
+5. **Debug Logging**: Comprehensive debug output shows file content before and after operations
+
+#### Race Condition Resolution
+The atomic write pattern solved the critical race condition where:
+- **Problem**: Sequential WriteString calls read stale file content due to file system latency
+- **Symptom**: Only the last written key-value pair persisted in the configuration file
+- **Root Cause**: Each WriteString read the original file content, missing previous writes
+- **Solution**: Atomic write builds complete configuration content before any file operation
+- **Result**: All five configuration parameters (SymbolList, StrongThreshold, WeakThreshold, PositionSize, UpdateFrequency) are now reliably persisted
 
 #### Priority-Based Parameter Loading
 The EA loads parameters in this priority order:
@@ -854,42 +869,25 @@ The EA loads parameters in this priority order:
 2. **Input Parameters**: Fallback when config file is missing or invalid  
 3. **Hardcoded Defaults**: Safety net for all parameter types
 
-#### Enhanced EA Initialization
-```mql5
-int OnInit() {
-    // Load configuration first, fallback to input parameters
-    if(!controller.LoadConfiguration(config_symbol_list, config_strong_threshold,
-                                   config_weak_threshold, config_position_size,
-                                   config_update_frequency)) {
-        // Use input parameters as fallback
-        config_symbol_list = SymbolList;
-        // ... other parameters
-    }
-    
-    // Validate loaded/input parameters
-    if(!ValidateInputParameters(config_symbol_list, config_strong_threshold,
-                              config_weak_threshold, config_position_size,
-                              config_update_frequency)) {
-        return INIT_FAILED;
-    }
-}
-```
-
 ### Testing Infrastructure
 
 #### Comprehensive Test Script
-Created `Test_Configuration.mq5` with four test scenarios:
-1. **Save Configuration**: Tests saving parameters to INI file
+Enhanced `Test_Configuration.mq5` with six test scenarios:
+1. **Save Configuration**: Tests saving parameters to configuration file
 2. **Load Configuration**: Tests loading and validating parameters
 3. **Reload Configuration**: Tests dynamic reload functionality
 4. **Different Values**: Tests configuration with various parameter sets
+5. **File Modification Detection**: Tests file change detection system
+6. **Configuration Validation**: Tests comprehensive parameter validation rules
 
 #### Test Coverage
 - ✅ File creation and formatting validation
 - ✅ Parameter reading with various data types
-- ✅ Error handling for missing files/sections/keys
+- ✅ Error handling for missing files
 - ✅ Validation of configuration parameters
 - ✅ Integration with existing parameter validation
+- ✅ Atomic write operation reliability
+- ✅ Race condition prevention
 
 ### Next Steps Enabled
 - **Live Configuration Reload**: Foundation for implementing file change detection

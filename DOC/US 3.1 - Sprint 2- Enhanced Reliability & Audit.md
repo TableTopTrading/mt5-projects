@@ -81,30 +81,16 @@ __Dependencies:__ Sprint 2.4 completed (error handling in place)
 ### Sprint 2.6: Configuration File Support
 - __Objective:__ Implement configuration file management using INI format 
 - __Activities:__
-- [ ] Create configuration file structure in EquityCurveSignals\Configuration\\
-- [ ] Implement INI file reading/writing functions
-- [ ] Add configuration management to CEquityCurveController or separate class
-- [ ] Support default values and configuration validation
-- [ ] Log configuration loading and validation events
-- [ ] Test configuration file creation, reading, and updating
-- [ ] Ensure configuration changes are applied without EA restart
+- [x] Create configuration file structure in EquityCurveSignals\Configuration\\
+- [x] Implement INI file reading/writing functions
+- [x] Add configuration management to CEquityCurveController or separate class
+- [x] Support default values and configuration validation
+- [x] Log configuration loading and validation events
+- [x] Test configuration file creation, reading, and updating
+- [x] Ensure configuration changes are applied without EA restart
 
 __Dependencies:__ Sprint 2.5 completed (parameter validation)
-<<<<<<< Updated upstream
 
-### Sprint 2.7: Resource Cleanup Guarantees
-=======
-### Sprint 2.7: Live Configuration Reload
-- __Objective:__ Implement live configuration reload functionality
-- __Activities:__
-- [x] Add file modification timestamp checking for automatic reload detection
-- [x] Implement manual reload trigger functionality
-- [x] Add configuration change validation before applying
-- [x] Ensure thread-safe configuration updates
-- [x] Test live reload functionality
-- [x] Update documentation with reload instructions
-### Sprint 2.8: Resource Cleanup Guarantees
->>>>>>> Stashed changes
 - __Objective:__ Ensure proper resource management and cleanup 
 - __Activities:__
 - [ ] Enhance Cleanup() method to release all resources (file handles, memory)
