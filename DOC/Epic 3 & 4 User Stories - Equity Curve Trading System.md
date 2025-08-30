@@ -7,6 +7,7 @@ Develop an Expert Advisor that generates trading signals based on the SuperSlope
 ---
 
 ### User Story 3.1: Core EA Framework Setup
+[[Sprint Planning - User Story 3.1 - Core EA Framework Setup]]
 
 **As a** trader  
 **I want** an EA framework that can run on demo accounts or in Strategy Tester  
@@ -16,7 +17,7 @@ Develop an Expert Advisor that generates trading signals based on the SuperSlope
 
 - [x] EA initializes correctly on demo accounts and Strategy Tester
 - [ ] EA validates that it's not running on a live account (safety check)
-- [ ] EA creates necessary file directories for output
+- [x] EA creates necessary file directories for output
 - [x] EA logs all initialization parameters for audit trail
 - [x] EA implements proper cleanup on deinitialization
 
@@ -544,5 +545,12 @@ Basic Trade Monitoring EA
 ---
 ## Notes and Items to review
 ### End of Sprint 1
-- I could not find an actual directory setup on the test environment but think that this is because we will need to add in some includes or library code to do this at a later point in the project 
+- Directories are setup in the common folders rather than specific terminal instance folders.  This needs to be noted in User Guide
 - At some point I will need to check that I get an error when trying to run on a live account
+### End of Sprint 2
+- Error handling.  I chose to direct DS to use a lightweight method for beta, rather than try a complex mechanism.  This means I may need to do another pass of error handling (as it is inline).
+	-  Changes from Original Plan:
+		- __No Centralized Error Class__: For beta, we'll avoid creating a complex error handling system. Instead, we'll use inline error checks with `GetLastError()`
+		- __No Custom Error Codes__: We'll rely on standard MQL5 error codes rather than defining custom ones, keeping it simple
+		- __Focus on Practicality__: Prioritize error handling that actually helps with debugging and recovery during testing
+		- __Minimal Impact__: Changes will be incremental and focused on existing code patterns

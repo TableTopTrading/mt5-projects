@@ -399,13 +399,17 @@ bool CRiskManager::CheckIndividualRisk(string symbol, double entry_price, double
 #### Purpose
 Manage Equity Curve EA initialization, setup, and resource management including account validation, directory setup, and logging configuration.
 
-#### Class Definition
+#### Class Definition (Sprint 2.5 - Enhanced with Parameter Logging)
 ```mql5
 class CEquityCurveController {
 private:
     bool            m_initialized;      // Flag indicating if controller is initialized
     string          m_log_path;         // Path for log files
     string          m_output_path;      // Path for output files (CSV, etc.)
+    string          m_config_path;      // Path for configuration files
+    int             m_log_file_handle;  // File handle for logging
+    string          m_current_log_file; // Current log filename
+    long            m_max_log_size;     // Maximum log file size in bytes (10MB)
     
 public:
     //--- Constructor and destructor
@@ -417,12 +421,48 @@ public:
     bool              ValidateAccountType(void);
     bool              SetupDirectories(void);
     bool              ConfigureLogging(void);
+    bool              CheckLogRotation(void);
     void              Cleanup(void);
+    
+    //--- Enhanced cleanup documentation
+    /**
+     * Enhanced Cleanup Method Features:
+     * - Error Handling: Comprehensive error checking and reporting for file closure operations
+     * - Fallback Logging: Uses Print() statements instead of file-based logging during cleanup
+     * - Idempotent Operation: Safely callable multiple times without causing errors
+     * - Resource Release: Ensures all file handles are properly closed with error reporting
+     */
+    
+    //--- Logging methods
+    void              LogInfo(string message);
+    void              LogWarning(string message);
+    void              LogError(string message);
+    void              LogInitializationParameters(string symbol_list, double strong_threshold, 
+                                                 double weak_threshold, double position_size, 
+                                                 int update_frequency);
+    
+    //--- Utility methods
+    bool              CreateDirectoryWithCheck(string path);
+    
+    //--- Configuration methods (Sprint 2.6)
+    bool              LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                                       double &weak_threshold, double &position_size, 
+                                       int &update_frequency);
+    bool              SaveConfiguration(string symbol_list, double strong_threshold, 
+                                       double weak_threshold, double position_size, 
+                                       int update_frequency);
+    bool              ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                                         double &weak_threshold, double &position_size, 
+                                         int &update_frequency);
+    
+    //--- File modification detection methods (Sprint 2.7)
+    bool              CheckConfigFileModified(void);
     
     //--- Getter methods
     bool              IsInitialized(void) const { return m_initialized; }
     string            GetLogPath(void) const { return m_log_path; }
     string            GetOutputPath(void) const { return m_output_path; }
+    string            GetConfigPath(void) const { return m_config_path; }
 };
 ```
 
@@ -432,15 +472,18 @@ The ValidateAccountType() method implements strict account type restrictions:
 - **Rejected**: Real accounts (ACCOUNT_TRADE_MODE_REAL), Contest accounts (ACCOUNT_TRADE_MODE_CONTEST)
 - **Security**: Provides clear error messages and comprehensive logging for audit trail
 - **Safety**: Prevents accidental execution on unauthorized account types
+- **Status**: ✅ IMPLEMENTED - Standard includes integrated for AccountInfo functionality
 
-#### Logging Framework
-The controller includes a comprehensive logging system with:
-- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing
-- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log)
-- **Initialization Logging**: LogInitializationParameters() method for recording startup configuration
+#### Logging Framework (Sprint 2.3 - Enhanced with Sprint 2.6 Fix)
+The controller includes a comprehensive file-based logging system with:
+- **Log Levels**: INFO, WARN, ERROR with appropriate prefixing and timestamping
+- **File-based Logging**: Timestamped log files (EquityCurve_YYYYMMDD.log) with automatic rotation
+- **Log Rotation**: 10MB maximum file size with automatic rotation and archival
+- **Timestamp Format**: Precise timestamps with millisecond precision [YYYY-MM-DD HH:MM:SS.mmm]
+- **Initialization Logging**: Enhanced LogInitializationParameters() with detailed system configuration and parameter logging (uses direct Print() to avoid circular dependencies)
 - **Error Handling**: Robust error handling with fallback to standard Print() when file operations fail
-- **Audit Trail**: Comprehensive logging for security and debugging purposes
-- **Future Ready**: Structure in place for full file-based logging when standard includes are available
+- **Audit Trail**: Comprehensive logging for security, debugging, and compliance purposes
+- **Status**: ✅ IMPLEMENTED - Full file-based logging with rotation and error handling
 
 #### Directory Management System
 The controller manages a comprehensive directory structure:
@@ -448,9 +491,130 @@ The controller manages a comprehensive directory structure:
 - **Logs Directory**: EquityCurveSignals\\Logs\\ - for log files and audit trails
 - **Output Directory**: EquityCurveSignals\\Output\\ - for CSV files and trading data output
 - **Configuration Directory**: EquityCurveSignals\\Configuration\\ - for configuration files and settings
-- **Error Handling**: Comprehensive error checking and reporting for directory operations
+- **Error Handling**: Comprehensive error checking and reporting with detailed error codes using GetLastError()
+- **Smart Creation**: Uses FolderCreate() which returns true if directory exists or is successfully created
 - **Integration**: Fully integrated with the logging framework for audit trail purposes
-- **Future Ready**: Structure prepared for full file operations when standard includes are available
+- **Status**: ✅ IMPLEMENTED - Full directory creation with proper MQL5 API usage
+
+## Sprint 2.4 Enhancements - Comprehensive Error Handling
+
+### Completed Enhancements
+
+#### 1. Error Code Definitions & Descriptive Messages
+- ✅ **Error Code Definitions**: Added custom error codes for common application scenarios
+- ✅ **GetErrorDescription() Function**: Comprehensive error description helper function covering all standard MQL5 error codes
+- ✅ **Enhanced Error Messages**: All error messages now include both error code and descriptive text
+
+#### 2. Enhanced Error Checking & Reporting
+- ✅ **File Operations**: Comprehensive error checking after all FileOpen, FileWrite, FileClose operations
+- ✅ **Directory Operations**: Enhanced error reporting for FolderCreate and directory management
+- ✅ **Consistent Error Format**: All errors follow consistent format: "Error [code]: [description]"
+
+#### 3. Parameter Validation
+- ✅ **Input Validation**: Added parameter validation to all public methods
+- ✅ **Null/Empty Checks**: Validation for NULL and empty string parameters
+- ✅ **Graceful Degradation**: Methods return false or skip operations instead of crashing
+- ✅ **EA Input Validation**: Comprehensive validation for SymbolList, StrongThreshold, WeakThreshold, PositionSize, and UpdateFrequency parameters
+
+#### 4. Error Logging Improvements
+- ✅ **Descriptive Logging**: Enhanced logging with detailed error context
+- ✅ **Fallback Mechanisms**: Robust fallback to Print() when file logging fails
+- ✅ **Error Context**: All file operation errors include file paths and operation details
+- ✅ **Parameter Logging**: Enhanced LogInitializationParameters() now logs all EA input parameters with values
+
+### Technical Implementation Details
+
+#### Error Handling Utilities
+```mql5
+// Error handling utilities
+#define ERROR_SUCCESS 0
+#define ERROR_FILE_OPERATION 5001
+#define ERROR_DIRECTORY_CREATION 5002
+#define ERROR_INVALID_PARAMETER 5003
+#define ERROR_INITIALIZATION_FAILED 5004
+
+// Comprehensive error description helper function
+string GetErrorDescription(int error_code)
+{
+    // Covers all standard MQL5 error codes with descriptive messages
+    switch(error_code) {
+        case 0: return "No error";
+        case 1: return "No error returned, but result is unknown";
+        // ... comprehensive coverage of all MQL5 error codes
+        default: return "Unknown error code: " + IntegerToString(error_code);
+    }
+}
+```
+
+#### Enhanced Error Reporting Examples
+```mql5
+// Before: Basic error reporting
+LogError("Failed to create directory: " + path + " (Error: " + IntegerToString(error_code) + ")");
+
+// After: Enhanced error reporting with descriptions
+LogError("Failed to create directory: " + path + " (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
+```
+
+#### Parameter Validation Examples
+```mql5
+// Parameter validation in public methods
+bool CreateDirectoryWithCheck(string path)
+{
+    // Parameter validation
+    if(path == NULL || StringLen(path) == 0)
+    {
+        LogError("Invalid directory path parameter: path cannot be empty or NULL");
+        return false;
+    }
+    // ... rest of method implementation
+}
+```
+
+### Next Steps Enabled
+- **Robust Error Recovery**: Foundation for implementing error recovery strategies
+- **Enhanced Debugging**: Detailed error information simplifies debugging
+- **Production Readiness**: Comprehensive error handling prepares for production deployment
+- **Future Components**: Error handling pattern can be extended to all future components
+
+### Technical Implementation Details
+
+#### Updated Include Structure
+```mql5
+// Standard MT5 includes (Sprint 2.1 - Integrated)
+#include <Trade/Trade.mqh>
+#include <Trade/AccountInfo.mqh>
+#include <Trade/SymbolInfo.mqh>
+#include <Trade/PositionInfo.mqh>
+```
+
+#### Enhanced IsNewBar() Implementation
+```mql5
+bool IsNewBar()
+{
+    static datetime last_bar_time = 0;
+    datetime current_bar_time = iTime(_Symbol, PERIOD_CURRENT, 0);
+    
+    if(current_bar_time != last_bar_time)
+    {
+        last_bar_time = current_bar_time;
+        return true;
+    }
+    
+    return false;
+}
+```
+
+#### Account Validation Now Fully Functional
+The ValidateAccountType() method now has full access to:
+- `AccountInfoInteger(ACCOUNT_TRADE_MODE)` - Account type detection
+- `MQLInfoInteger(MQL_TESTER)` - Strategy tester detection
+- Complete error handling and logging capabilities
+
+### Next Steps Enabled
+- **File Operations**: Ready for implementation of file-based logging with Files/File.mqh
+- **Trade Execution**: Foundation laid for CTradeManager with Trade.mqh
+- **Position Management**: Ready for CPositionTracker with PositionInfo.mqh
+- **Market Data**: Comprehensive data access enabled with SymbolInfo.mqh
 
 ## Data Structures and Enums
 
@@ -652,5 +816,106 @@ public:
     }
 };
 ```
+
+## Sprint 2.6 Enhancements - Configuration File Support
+
+### Completed Enhancements
+
+#### 1. Custom CConfigHandler Implementation
+- ✅ **Native MQL5 Solution**: Created custom CConfigHandler class using MQL5's built-in file functions
+- ✅ **Windows API Elimination**: Removed problematic Windows API dependencies that caused compatibility issues
+- ✅ **Full Feature Parity**: Supports all operations (Read/Write String, Integer, Double) with identical API
+- ✅ **Enhanced Reliability**: Works within MetaTrader's sandboxed environment without external dependencies
+
+#### 2. Configuration Management Methods
+- ✅ **LoadConfiguration()**: Loads parameters from configuration file with default fallbacks and validation
+- ✅ **SaveConfiguration()**: Saves current settings using atomic write operations to prevent race conditions
+- ✅ **ReloadConfiguration()**: Reloads configuration without EA restart for dynamic updates
+- ✅ **Parameter Priority**: Implements three-tier loading strategy (config file → input params → defaults)
+
+#### 3. Configuration File Structure
+- ✅ **Simple Key-Value Format**: Uses straightforward key=value format for maximum compatibility
+- ✅ **File Location**: `EquityCurveSignals\Configuration\EquityCurveConfig.ini` with FILE_COMMON flag
+- ✅ **Key Organization**: Uses dot notation (General.SymbolList) for structured parameter naming
+- ✅ **Parameter Types**: Supports all EA input parameter types with proper data conversion
+
+#### 4. Enhanced Error Handling & Logging
+- ✅ **Comprehensive Error Reporting**: Detailed error messages for all configuration operations
+- ✅ **Atomic Write Operations**: Prevents race conditions by writing complete configuration in single operation
+- ✅ **Audit Logging**: All configuration operations are logged with detailed debug information
+- ✅ **Validation Integration**: Uses existing parameter validation framework for loaded values
+
+### Technical Implementation Details
+
+#### Configuration Methods in CEquityCurveController
+```mql5
+// Configuration methods (Sprint 2.6)
+bool LoadConfiguration(string &symbol_list, double &strong_threshold, 
+                      double &weak_threshold, double &position_size, 
+                      int &update_frequency);
+bool SaveConfiguration(string symbol_list, double strong_threshold, 
+                      double weak_threshold, double position_size, 
+                      int update_frequency);
+bool ReloadConfiguration(string &symbol_list, double &strong_threshold, 
+                        double &weak_threshold, double &position_size, 
+                        int &update_frequency);
+```
+
+#### Configuration File Format
+```
+General.SymbolList=EURUSD,GBPUSD,USDJPY
+General.StrongThreshold=0.7
+General.WeakThreshold=0.3
+General.PositionSize=0.1
+General.UpdateFrequency=60
+```
+
+#### Atomic Write Implementation
+The SaveConfiguration() method now uses atomic write operations:
+1. **Build Complete Content**: Constructs entire configuration as single string in memory
+2. **Single File Operation**: Writes all key-value pairs in one atomic file operation
+3. **Race Condition Prevention**: Eliminates issues with sequential file writes that caused stale reads
+4. **Reliable Persistence**: Ensures all configuration values are properly saved
+5. **Debug Logging**: Comprehensive debug output shows file content before and after operations
+
+#### Race Condition Resolution
+The atomic write pattern solved the critical race condition where:
+- **Problem**: Sequential WriteString calls read stale file content due to file system latency
+- **Symptom**: Only the last written key-value pair persisted in the configuration file
+- **Root Cause**: Each WriteString read the original file content, missing previous writes
+- **Solution**: Atomic write builds complete configuration content before any file operation
+- **Result**: All five configuration parameters (SymbolList, StrongThreshold, WeakThreshold, PositionSize, UpdateFrequency) are now reliably persisted
+
+#### Priority-Based Parameter Loading
+The EA loads parameters in this priority order:
+1. **Configuration File**: Primary source when file exists and values are valid
+2. **Input Parameters**: Fallback when config file is missing or invalid  
+3. **Hardcoded Defaults**: Safety net for all parameter types
+
+### Testing Infrastructure
+
+#### Comprehensive Test Script
+Enhanced `Test_Configuration.mq5` with six test scenarios:
+1. **Save Configuration**: Tests saving parameters to configuration file
+2. **Load Configuration**: Tests loading and validating parameters
+3. **Reload Configuration**: Tests dynamic reload functionality
+4. **Different Values**: Tests configuration with various parameter sets
+5. **File Modification Detection**: Tests file change detection system
+6. **Configuration Validation**: Tests comprehensive parameter validation rules
+
+#### Test Coverage
+- ✅ File creation and formatting validation
+- ✅ Parameter reading with various data types
+- ✅ Error handling for missing files
+- ✅ Validation of configuration parameters
+- ✅ Integration with existing parameter validation
+- ✅ Atomic write operation reliability
+- ✅ Race condition prevention
+
+### Next Steps Enabled
+- **Live Configuration Reload**: Foundation for implementing file change detection
+- **Advanced Configuration**: Support for multiple configuration sections/profiles
+- **User Interface**: Potential for configuration management UI
+- **Backup/Restore**: Configuration versioning and backup capabilities
 
 This technical design document provides comprehensive specifications for implementing the Equity Curve Trading System with proper architecture, error handling, and performance considerations.
