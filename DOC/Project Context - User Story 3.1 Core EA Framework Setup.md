@@ -7,15 +7,15 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 - Consult memory bank when wider context is needed.
 - Work on one file at a time.  If changes are needed to other files, stop and request confirmation first.
 - Always review your plan to ensure that you are considering any MQL5 constraints.
-- Symbolic links are used to share files between dev and test.
+- Always ask the user to compile files as symbolic links are used to share files between dev and test.
 - Include Convention: 
     - Use angle brackets `< >` for all project includes
     - Paths should be relative to MQL5/Includes directory
     - Example: `#include <MyProjects\ComponentName\FileName.mqh>`
 
 ### Completed
--  Sprint 1: Core Framework Foundation
- - Sprint 2.1 Standard Includes Integration and Compilation Fix
+- Sprint 1: Core Framework Foundation
+- Sprint 2.1 Standard Includes Integration and Compilation Fix
 - Sprint 2.2: Directory Creation Implementation for the Equity Curve Signal EA. 
 - Sprint 2.3: File based logging
 - Sprint 2.4 Comprehensive Error Handling
@@ -34,12 +34,12 @@ Sprint 2 focuses on enhancing the reliability and audit capabilities of the Equi
 ### Sprint 2.8: Resource Cleanup Guarantees
 - __Objective:__ Ensure proper resource management and cleanup 
 - __Activities:__
-- [ ] Enhance Cleanup() method to release all resources (file handles, memory)
-- [ ] Implement destructor improvements for proper object cleanup
-- [ ] Add resource leak detection and reporting
-- [ ] Test cleanup during normal deinitialization and error conditions
-- [ ] Verify no open file handles or memory leaks after EA removal
-- [ ] Log cleanup operations for audit purposes
+- [x] Enhance Cleanup() method to release all resources (file handles, memory)
+- [x] Implement destructor improvements for proper object cleanup
+- [x] Add resource leak detection and reporting
+- [x] Test cleanup during normal deinitialization and error conditions
+- [x] Verify no open file handles or memory leaks after EA removal
+- [x] Log cleanup operations for audit purposes
 
 ## Sprint 2.8: Resource Cleanup Guarantees Implementation Plan
 
