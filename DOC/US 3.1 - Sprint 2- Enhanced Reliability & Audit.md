@@ -90,10 +90,6 @@ __Dependencies:__ Sprint 2.4 completed (error handling in place)
 - [ ] Ensure configuration changes are applied without EA restart
 
 __Dependencies:__ Sprint 2.5 completed (parameter validation)
-<<<<<<< Updated upstream
-
-### Sprint 2.7: Resource Cleanup Guarantees
-=======
 ### Sprint 2.7: Live Configuration Reload
 - __Objective:__ Implement live configuration reload functionality
 - __Activities:__
@@ -104,7 +100,6 @@ __Dependencies:__ Sprint 2.5 completed (parameter validation)
 - [x] Test live reload functionality
 - [x] Update documentation with reload instructions
 ### Sprint 2.8: Resource Cleanup Guarantees
->>>>>>> Stashed changes
 - __Objective:__ Ensure proper resource management and cleanup 
 - __Activities:__
 - [ ] Enhance Cleanup() method to release all resources (file handles, memory)
