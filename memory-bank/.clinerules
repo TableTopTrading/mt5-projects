@@ -40,3 +40,4 @@ mt5-projects/
   - Standard includes: `#include <Trade/Trade.mqh>`
 - Always validate against MQL5 constraints
 - Maintain backward compatibility during development
+- Always request the user compiles files, never attempt to compile a file

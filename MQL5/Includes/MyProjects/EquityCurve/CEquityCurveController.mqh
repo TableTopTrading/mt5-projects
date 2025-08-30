@@ -641,21 +641,23 @@ string CEquityCurveController::GetFullConfigPath(string relative_path)
 //+------------------------------------------------------------------+
 void CEquityCurveController::Cleanup(void)
 {
-    // Close log file if open
+    // Close log file if open with error handling
     if(m_log_file_handle != INVALID_HANDLE)
     {
-        FileClose(m_log_file_handle);
+        if(!FileClose(m_log_file_handle))
+        {
+            int error_code = GetLastError();
+            Print("[ERROR] Failed to close log file handle (Error " + IntegerToString(error_code) + ": " + GetErrorDescription(error_code) + ")");
+        }
         m_log_file_handle = INVALID_HANDLE;
-        LogInfo("Log file closed: " + m_current_log_file);
+        Print("[INFO] Log file closed: " + m_current_log_file); // Use Print instead of LogInfo during cleanup
     }
     
-    // Reset initialization flag
+    // Reset all members to initial state
     m_initialized = false;
-    
-    // Clear file tracking
     m_current_log_file = "";
     
-    LogInfo("CEquityCurveController cleanup completed - all resources released");
+    Print("[INFO] CEquityCurveController cleanup completed - all resources released");
 }
 
 
